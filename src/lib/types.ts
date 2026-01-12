@@ -10,6 +10,8 @@ export interface Asset {
     balance: number;
     created_at: string;
     updated_at: string;
+    is_primary_jpy?: boolean;
+    is_primary_idr?: boolean;
 }
 
 // Transaction types

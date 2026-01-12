@@ -30,4 +30,9 @@ export const assetsService = {
     delete: async (id: number): Promise<void> => {
         await api.delete(`/assets/${id}`);
     },
+
+    // Set primary asset for a currency
+    setPrimaryAsset: async (assetId: number, currency: 'JPY' | 'IDR'): Promise<void> => {
+        await api.post('/user/primary-asset', { asset_id: assetId, currency });
+    },
 };

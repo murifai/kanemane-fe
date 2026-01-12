@@ -10,7 +10,7 @@ import Combobox from '@/components/ui/Combobox';
 import { assetsService } from '@/lib/services/assets';
 import { dashboardService } from '@/lib/services/dashboard';
 import type { Asset, CreateAssetData } from '@/lib/types';
-import { Wallet, Edit, Trash2, PlusCircle } from 'lucide-react';
+import { Wallet, Edit, Trash2, PlusCircle, Star, MoreVertical } from 'lucide-react';
 
 import banksJp from '@/data/banks-jp.json';
 import banksId from '@/data/banks-id.json';
@@ -25,6 +25,7 @@ export default function AssetsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
     const [exchangeRate, setExchangeRate] = useState(107);
+    const [openMenuId, setOpenMenuId] = useState<number | null>(null);
 
     const calculateAllAssets = () => {
         if (!assets) return [];
@@ -100,6 +101,16 @@ export default function AssetsPage() {
             loadAssets();
         } catch (error) {
             console.error('Gagal menghapus aset:', error);
+        }
+    };
+
+    const handleSetPrimary = async (id: number, currency: 'JPY' | 'IDR') => {
+        if (!confirm(`Jadikan aset ini sebagai dompet utama ${currency}?`)) return;
+        try {
+            await assetsService.setPrimaryAsset(id, currency);
+            loadAssets();
+        } catch (error) {
+            console.error('Gagal mengatur dompet utama:', error);
         }
     };
 
@@ -248,48 +259,88 @@ export default function AssetsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {calculateAllAssets()
                     .filter(asset => asset.currency === activeTab)
-                    .map((asset) => (
-                        <Card key={asset.id}>
-                            <CardHeader>
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <CardTitle className="text-base md:text-lg">{asset.name}</CardTitle>
-                                        <p className="text-xs md:text-sm text-[#737373] mt-1">
-                                            {getAssetTypeLabel(asset.type)}
-                                        </p>
+                    .map((asset) => {
+                        const isPrimary = activeTab === 'JPY' ? asset.is_primary_jpy : asset.is_primary_idr;
+                        return (
+                            <Card key={asset.id}>
+                                <CardHeader>
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <CardTitle className="text-base md:text-lg">{asset.name}</CardTitle>
+                                                {isPrimary && (
+                                                    <div title="Dompet Utama">
+                                                        <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <p className="text-xs md:text-sm text-[#737373] mt-1">
+                                                {getAssetTypeLabel(asset.type)}
+                                            </p>
+                                        </div>
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => setOpenMenuId(openMenuId === asset.id ? null : asset.id)}
+                                                className="p-1 hover:bg-gray-100 rounded"
+                                                title="Menu"
+                                            >
+                                                <MoreVertical className="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     </div>
-                                    <span className="text-sm font-bold px-2 py-1 bg-gray-100 rounded border border-black">
-                                        {asset.currency}
-                                    </span>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-2xl md:text-3xl font-bold text-[#ff5e75] mb-4">
-                                    {formatCurrency(Number(asset.balance), asset.currency)}
-                                </p>
-                                <div className="flex gap-2">
-                                    <Button
-                                        size="sm"
-                                        variant="secondary"
-                                        onClick={() => openEditModal(asset)}
-                                        className="flex-1 flex items-center justify-center gap-1"
-                                    >
-                                        <Edit className="w-3 h-3" />
-                                        <span className="text-xs md:text-sm">Edit</span>
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="destructive"
-                                        onClick={() => handleDelete(asset.id)}
-                                        className="flex-1 flex items-center justify-center gap-1"
-                                    >
-                                        <Trash2 className="w-3 h-3" />
-                                        <span className="text-xs md:text-sm">Hapus</span>
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-2xl md:text-3xl font-bold text-[#ff5e75]">
+                                        {formatCurrency(Number(asset.balance), asset.currency)}
+                                    </p>
+
+                                </CardContent>
+                                {/* Dropdown Menu */}
+                                {openMenuId === asset.id && (
+                                    <>
+                                        <div
+                                            className="fixed inset-0 z-10"
+                                            onClick={() => setOpenMenuId(null)}
+                                        />
+                                        <div className="absolute right-4 top-16 w-48 bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] z-20">
+                                            {!isPrimary && (
+                                                <button
+                                                    onClick={() => {
+                                                        setOpenMenuId(null);
+                                                        handleSetPrimary(asset.id, asset.currency);
+                                                    }}
+                                                    className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 border-b border-gray-200 rounded-t-md"
+                                                >
+                                                    <Star className="w-4 h-4" />
+                                                    <span className="text-sm font-medium">Set Dompet Utama</span>
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => {
+                                                    setOpenMenuId(null);
+                                                    openEditModal(asset);
+                                                }}
+                                                className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 border-b border-gray-200"
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                                <span className="text-sm font-medium">Edit</span>
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setOpenMenuId(null);
+                                                    handleDelete(asset.id);
+                                                }}
+                                                className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-red-600 rounded-b-md"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                                <span className="text-sm font-medium">Hapus</span>
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+                            </Card>
+                        );
+                    })}
 
                 {calculateAllAssets().filter(asset => asset.currency === activeTab).length === 0 && (
                     <div className="col-span-full text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">

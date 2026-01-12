@@ -5,7 +5,7 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { dashboardService } from '@/lib/services/dashboard';
 import type { DashboardSummary, DashboardCharts, Transaction } from '@/lib/types';
-import { TrendingUp, TrendingDown, PlusCircle, ArrowRight, BanknoteArrowDown, BanknoteArrowUp } from 'lucide-react';
+import { TrendingUp, TrendingDown, PlusCircle, ArrowRight, BanknoteArrowDown, BanknoteArrowUp, FileText } from 'lucide-react';
 import {
     PieChart,
     Pie,
@@ -167,10 +167,23 @@ export default function DashboardPage() {
                     <p className="text-lg font-bold mb-1">{userName}</p>
                     <p className="text-sm md:text-base text-[#737373]">Ringkasan keuangan kamu...</p>
                 </div>
-                <div className="flex gap-2">
-                    {/* Currency Toggle Removed from Header */}
+                {/* Mobile: Button on the right */}
+                <div className="md:hidden flex gap-2 w-full justify-end">
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        className="flex items-center gap-2"
+                        onClick={() => router.push('/dashboard/reports')}
+                    >
+                        <FileText className="w-4 h-4" />
+                        Laporan Keuangan
+                    </Button>
                 </div>
+                {/* Desktop: Buttons on the right */}
                 <div className="hidden md:flex gap-2">
+                    <Button variant="secondary" size="sm" className="flex items-center gap-2" onClick={() => router.push('/dashboard/reports')}>
+                        <FileText className="w-4 h-4" /> Laporan Keuangan
+                    </Button>
                     <Button variant="primary" size="sm" className="flex items-center gap-2" onClick={() => openModal()}>
                         <PlusCircle className="w-4 h-4" /> Tambah Transaksi
                     </Button>
