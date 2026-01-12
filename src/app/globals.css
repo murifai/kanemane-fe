@@ -1,26 +1,259 @@
 @import "tailwindcss";
 
+/* Tailwind v4 content scanning - only include classes used in these paths */
+@source "../**/*.{ts,tsx,js,jsx}";
+@source "../../components/**/*.{ts,tsx}";
+
+@custom-variant dark (&:is(.dark *));
+
 :root {
-  --background: #ffffff;
+  --background: #F8F8F8;
   --foreground: #171717;
+  --card: #fafafa;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #ff5e75;
+  --primary-foreground: #ffffff;
+  --secondary: #eeeeee;
+  --secondary-foreground: #0d0d0d;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --accent: #f8f8f8;
+  --accent-foreground: #0d0d0d;
+  --destructive: #ef4343;
+  --border: #000000;
+  --input: #e6e6e6;
+  --ring: #ff99a7;
+  --chart-1: #f2727d;
+  --chart-2: #73cfd9;
+  --chart-3: #7fbf50;
+  --chart-4: #f2eda0;
+  --chart-5: #d99ad5;
+  --sidebar: #fafafa;
+  --sidebar-foreground: #3f3f46;
+  --sidebar-primary: #18181b;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent: #f4f4f5;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-border: #e5e7eb;
+  --sidebar-ring: #ff5e75;
+
+  --font-sans: var(--font-space-grotesk), sans-serif;
+  --font-serif: var(--font-shippori), serif;
+  --font-mono: Roboto Mono, monospace;
+
+  --radius: 0.25rem;
+
+  /* Neobrutalism card type colors */
+  --card-hiragana: #FFB6C1;
+  --card-hiragana-back: #FFF0F3;
+  --card-katakana: #87CEEB;
+  --card-katakana-back: #E8F4F8;
+  --card-kanji: #f2eda0;
+  --card-kanji-back: #FFFAE0;
+  --card-vocabulary: #98D8AA;
+  --card-vocabulary-back: #E8F5E9;
+  --card-grammar: #73cfd9;
+  --card-grammar-back: #aaf0f8;
+
+  /* Neobrutalism Core */
+  --main: var(--primary);
+  --main-foreground: var(--primary-foreground);
+  --secondary-background: var(--secondary);
+
+  /* Neobrutalism specific */
+  --neo-border: 3px solid #000000;
+  --neo-shadow: 4px 4px 0px 0px #000000;
+  --neo-shadow-hover: 6px 6px 0px 0px #000000;
+  --neo-shadow-active: 2px 2px 0px 0px #000000;
+  --tertiary-green: #22c55e;
+
+  /* Shadow System for Neo Brutalism */
+  --shadow-shadow: 4px 4px 0px 0px var(--border);
+  --box-shadow-x: 4px;
+  --box-shadow-y: 4px;
+  --reverse-box-shadow-x: -4px;
+  --reverse-box-shadow-y: -4px;
+
+  --shadow-2xs: 2px 2px 0px 0px #000000;
+  --shadow-xs: 2px 2px 0px 0px #000000;
+  --shadow-sm: 3px 3px 0px 0px #000000;
+  --shadow: 4px 4px 0px 0px #000000;
+  --shadow-md: 4px 4px 0px 0px #000000;
+  --shadow-lg: 5px 5px 0px 0px #000000;
+  --shadow-xl: 6px 6px 0px 0px #000000;
+  --shadow-2xl: 8px 8px 0px 0px #000000;
+
+  /* Rounded Base for Neo Brutalism */
+  --radius-base: 5px;
+
+  --spacing: 0.25rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Neo Brutalism Color Mappings */
+  --color-main: var(--main);
+  --color-main-foreground: var(--main-foreground);
+  --color-secondary-background: var(--secondary-background);
+
+  --font-sans: var(--font-space-grotesk), sans-serif;
+  --font-mono: Roboto Mono, monospace;
+  --font-serif: var(--font-shippori), serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-base: var(--radius-base);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+  --shadow-shadow: var(--shadow-shadow);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #292A2E;
+  --foreground: #fafafa;
+  --card: #18181b;
+  --card-foreground: #fafafa;
+  --popover: #18181b;
+  --popover-foreground: #fafafa;
+  --primary: #ff5e75;
+  --primary-foreground: #18181b;
+  --secondary: #191722;
+  --secondary-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #9f9fa9;
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
+  --destructive: #ff6467;
+  --border: #010101;
+  --input: #ffffff26;
+  --ring: #71717b;
+  --chart-1: #f2727d;
+  --chart-2: #73cfd9;
+  --chart-3: #7fbf50;
+  --chart-4: #f2eda0;
+  --chart-5: #d99ad5;
+  --sidebar: #18181b;
+  --sidebar-foreground: #f4f4f5;
+  --sidebar-primary: #f2727d;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #27272a;
+  --sidebar-accent-foreground: #f4f4f5;
+  --sidebar-border: #27272a;
+  --sidebar-ring: #f2727d;
+
+  /* Neobrutalism card type colors - Dark Mode (darker versions) */
+  --card-hiragana: #8B5A6B;
+  --card-hiragana-back: #3D2A30;
+  --card-katakana: #4A7A8A;
+  --card-katakana-back: #2A3D45;
+  --card-kanji: #8A8555;
+  --card-kanji-back: #3D3A25;
+  --card-vocabulary: #4A7A55;
+  --card-vocabulary-back: #2A3D30;
+  --card-grammar: #4A8A8F;
+  --card-grammar-back: #2A4548;
+
+  /* Neobrutalism Core - Dark Mode */
+  --main: var(--primary);
+  --main-foreground: var(--primary-foreground);
+  --secondary-background: var(--secondary);
+
+  /* Shadow System for Neo Brutalism - Dark Mode */
+  --shadow-shadow: 4px 4px 0px 0px var(--border);
+  --shadow-2xs: 2px 2px 0px 0px #010101;
+  --shadow-xs: 2px 2px 0px 0px #010101;
+  --shadow-sm: 3px 3px 0px 0px #010101;
+  --shadow: 4px 4px 0px 0px #010101;
+  --shadow-md: 4px 4px 0px 0px #010101;
+  --shadow-lg: 5px 5px 0px 0px #010101;
+  --shadow-xl: 6px 6px 0px 0px #010101;
+  --shadow-2xl: 8px 8px 0px 0px #010101;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* Neobrutalism utility classes */
+.neo-shadow {
+  box-shadow: var(--shadow);
+}
+
+.neo-shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+
+.neo-shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+.neo-shadow-xl {
+  box-shadow: var(--shadow-xl);
+}
+
+.neo-border {
+  border: 3px solid var(--border);
+}
+
+.neo-border-thick {
+  border: 3px solid var(--border);
+}
+
+/* Smooth transitions */
+* {
+  @apply transition-colors duration-200;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
 }
