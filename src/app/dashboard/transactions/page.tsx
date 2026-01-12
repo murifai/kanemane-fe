@@ -6,19 +6,20 @@ import Card, { CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { transactionsService } from '@/lib/services/transactions';
 import type { Transaction } from '@/lib/types';
-import { Trash2, PlusCircle, BanknoteArrowDown, BanknoteArrowUp } from 'lucide-react';
+import { Trash2, PlusCircle, BanknoteArrowDown, BanknoteArrowUp, Pencil } from 'lucide-react';
 import { useTransactionModal } from '@/context/TransactionModalContext';
 
 function TransactionsContent() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'income' | 'expense'>('income');
+    const [currency, setCurrency] = useState<'JPY' | 'IDR'>('JPY');
     const { openModal, setOnTransactionCreated } = useTransactionModal();
 
     // Define loadData first so it can be used in useEffect
     const loadData = useCallback(async () => {
         try {
-            const transactionsData = await transactionsService.getAll();
+            const transactionsData = await transactionsService.getAll(currency);
             // Sort transaksi berdasarkan tanggal terbaru
             transactionsData.sort((a, b) => {
                 return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -29,7 +30,7 @@ function TransactionsContent() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [currency]);
 
     useEffect(() => {
         loadData();
@@ -116,16 +117,39 @@ function TransactionsContent() {
                     <h1 className="text-3xl md:text-4xl font-bold mb-2">Transaksi</h1>
                     <p className="text-sm md:text-base text-[#737373]">Kelola pemasukan dan pengeluaran</p>
                 </div>
-                <div className="w-full sm:w-auto">
+                <div className="flex gap-2 w-full sm:w-auto">
+                    {/* Currency Toggle Removed from Header */}
                     <Button
                         variant="primary"
-                        onClick={openModal}
-                        className="flex items-center justify-center gap-2 w-full sm:w-auto"
+                        onClick={() => openModal()}
+                        className="flex items-center justify-center gap-2 flex-1 sm:flex-none"
                     >
                         <PlusCircle className="w-4 h-4" />
                         Tambah Transaksi
                     </Button>
                 </div>
+            </div>
+
+            {/* Currency Tabs */}
+            <div className="flex gap-2 mb-2 p-1 bg-gray-100 rounded-lg w-full border-2 border-black">
+                <button
+                    onClick={() => setCurrency('JPY')}
+                    className={`flex-1 px-4 py-2 text-sm font-bold rounded-md transition-all whitespace-nowrap ${currency === 'JPY'
+                        ? 'bg-[#E0B0FF] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000000]'
+                        : 'text-gray-500 hover:text-black'
+                        }`}
+                >
+                    JPY
+                </button>
+                <button
+                    onClick={() => setCurrency('IDR')}
+                    className={`flex-1 px-4 py-2 text-sm font-bold rounded-md transition-all whitespace-nowrap ${currency === 'IDR'
+                        ? 'bg-[#E0B0FF] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000000]'
+                        : 'text-gray-500 hover:text-black'
+                        }`}
+                >
+                    IDR
+                </button>
             </div>
 
             {/* Comparison Summary */}
@@ -141,7 +165,7 @@ function TransactionsContent() {
                                 <span className="text-[#737373] text-xs sm:text-sm font-medium">Total Pemasukan</span>
                             </div>
                             <span className="text-lg sm:text-2xl font-bold text-[#4da6ff] break-all">
-                                {formatCurrency(chartTotals.income, 'JPY')}
+                                {formatCurrency(chartTotals.income, currency)}
                             </span>
                         </div>
 
@@ -155,7 +179,7 @@ function TransactionsContent() {
                                 <span className="text-[#737373] text-xs sm:text-sm font-medium">Total Pengeluaran</span>
                             </div>
                             <span className="text-lg sm:text-2xl font-bold text-[#f2727d] break-all">
-                                {formatCurrency(chartTotals.expense, 'JPY')}
+                                {formatCurrency(chartTotals.expense, currency)}
                             </span>
                         </div>
                     </div>
@@ -164,7 +188,7 @@ function TransactionsContent() {
                     <div className="relative pt-4">
                         <div className="flex justify-between text-xs font-bold mb-2">
                             <span>{Math.round((chartTotals.expense / (chartTotals.income || 1)) * 100)}% dari Pemasukan</span>
-                            <span>{formatCurrency(chartTotals.income - chartTotals.expense, 'JPY')} Tersisa</span>
+                            <span>{formatCurrency(chartTotals.income - chartTotals.expense, currency)} Tersisa</span>
                         </div>
                         <div className="h-10 w-full bg-[#e6f4ff] border-2 border-black overflow-hidden relative">
                             {/* Income Background (Blue tint) */}
@@ -182,10 +206,10 @@ function TransactionsContent() {
             </Card>
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-6 p-1 bg-gray-100 rounded-lg w-full sm:w-fit border-2 border-black">
+            <div className="flex gap-2 mb-6 p-1 bg-gray-100 rounded-lg w-full border-2 border-black">
                 <button
                     onClick={() => setActiveTab('income')}
-                    className={`flex-1 sm:flex-none px-4 py-2 text-sm font-bold rounded-md transition-all whitespace-nowrap ${activeTab === 'income'
+                    className={`flex-1 px-4 py-2 text-sm font-bold rounded-md transition-all whitespace-nowrap ${activeTab === 'income'
                         ? 'bg-[#73cfd9] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                         : 'hover:bg-gray-200 text-gray-600'
                         }`}
@@ -194,7 +218,7 @@ function TransactionsContent() {
                 </button>
                 <button
                     onClick={() => setActiveTab('expense')}
-                    className={`flex-1 sm:flex-none px-4 py-2 text-sm font-bold rounded-md transition-all whitespace-nowrap ${activeTab === 'expense'
+                    className={`flex-1 px-4 py-2 text-sm font-bold rounded-md transition-all whitespace-nowrap ${activeTab === 'expense'
                         ? 'bg-[#73cfd9] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                         : 'hover:bg-gray-200 text-gray-600'
                         }`}
@@ -233,6 +257,15 @@ function TransactionsContent() {
                                         {isIncomeType ? '+' : '-'}
                                         {formatCurrency(Number(transaction.amount), transaction.currency)}
                                     </p>
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={() => openModal(transaction)}
+                                        className="flex items-center gap-1 mr-2"
+                                    >
+                                        <Pencil className="w-3 h-3" />
+                                        <span className="hidden sm:inline text-xs md:text-sm">Edit</span>
+                                    </Button>
                                     <Button
                                         size="sm"
                                         variant="destructive"

@@ -5,7 +5,7 @@ export interface Asset {
     owner_id: number;
     country: 'JP' | 'ID';
     name: string;
-    type: 'tabungan' | 'e-money' | 'investasi';
+    type: 'tabungan' | 'e-money' | 'investasi' | 'cash';
     currency: 'JPY' | 'IDR';
     balance: number;
     created_at: string;
@@ -68,6 +68,7 @@ export interface DashboardSummary {
     top_expense_category: string | null;
     recent_transactions?: Transaction[];
     goals?: Goal[];
+    exchange_rate?: number;
 }
 
 export interface MonthlyTrend {
@@ -97,7 +98,7 @@ export interface AssetsResponse {
 // Form types
 export interface CreateAssetData {
     name: string;
-    type: 'tabungan' | 'e-money' | 'investasi';
+    type: 'tabungan' | 'e-money' | 'investasi' | 'cash';
     country: 'JP' | 'ID';
     currency: 'JPY' | 'IDR';
     balance: number;

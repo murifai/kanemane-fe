@@ -12,10 +12,11 @@ import { useTransactionModal } from '@/context/TransactionModalContext';
 import ReceiptScanner from './ReceiptScanner';
 
 export default function TransactionFlowModal() {
-    const { isOpen, closeModal, onTransactionCreated } = useTransactionModal();
+    const { isOpen, closeModal, onTransactionCreated, transactionToEdit } = useTransactionModal();
     const [step, setStep] = useState<'type-selection' | 'income' | 'expense'>('type-selection');
     const [assets, setAssets] = useState<Asset[]>([]);
     const [showReceiptScanner, setShowReceiptScanner] = useState(false);
+    const [currency, setCurrency] = useState<'JPY' | 'IDR'>('JPY');
 
     // Forms
     const [incomeForm, setIncomeForm] = useState<CreateIncomeData>({
@@ -35,10 +36,30 @@ export default function TransactionFlowModal() {
 
     useEffect(() => {
         if (isOpen) {
-            setStep('type-selection');
             loadAssets();
+            if (transactionToEdit) {
+                setStep(transactionToEdit.type);
+                setCurrency(transactionToEdit.currency);
+
+                const commonData = {
+                    asset_id: transactionToEdit.asset_id,
+                    category: transactionToEdit.category,
+                    amount: Number(transactionToEdit.amount), // Ensure number
+                    date: transactionToEdit.date.split('T')[0], // Handle potential timestamp
+                    note: transactionToEdit.note || '',
+                };
+
+                if (transactionToEdit.type === 'income') {
+                    setIncomeForm(commonData);
+                } else {
+                    setExpenseForm(commonData);
+                }
+            } else {
+                setStep('type-selection');
+                resetForms(); // Only reset if NOT editing (new transaction)
+            }
         }
-    }, [isOpen]);
+    }, [isOpen, transactionToEdit]);
 
     const loadAssets = async () => {
         try {
@@ -99,6 +120,10 @@ export default function TransactionFlowModal() {
 
     const handleClose = () => {
         closeModal();
+        // Do not reset forms here immediately to avoid flickering if needed, 
+        // but typically we want to reset.
+        // However, useEffect will handle reset/populate on open.
+        // If we close, we can reset.
         resetForms();
         setStep('type-selection');
         setShowReceiptScanner(false);
@@ -114,13 +139,24 @@ export default function TransactionFlowModal() {
             'その他': 'Lainnya',
         };
 
+        // Determine currency from scan result (if available) or default to JPY
+        // Since ReceiptScanResult might not have currency yet in type definition, check loosely or cast
+        // But for now, let's assume result might contain it if I updated the Interface.
+        // For now, I'll default to JPY unless I see IDR pattern in merchant or something,
+        // BUT actually I updated GeminiService to return 'currency'.
+        // Frontend ReceiptScanResult type needs update. I'll just check property existence carefully.
+        const scannedCurrency = (result as any).currency || 'JPY';
+        if (scannedCurrency === 'IDR' || scannedCurrency === 'JPY') {
+            setCurrency(scannedCurrency);
+        }
+
         // Update expense form with scanned data
         setExpenseForm({
             ...expenseForm,
             category: categoryMap[result.category] || 'Lainnya',
             amount: result.amount,
             date: result.date,
-            note: `${result.merchant}\n\n${result.items.map(item => `${item.name}: ¥${item.price}`).join('\n')}`,
+            note: `${result.merchant}\n\n${result.items.map(item => `${item.name}: ${scannedCurrency === 'JPY' ? '¥' : 'Rp'}${item.price}`).join('\n')}`,
         });
 
         setShowReceiptScanner(false);
@@ -134,12 +170,16 @@ export default function TransactionFlowModal() {
         }
 
         try {
-            await transactionsService.createIncome(incomeForm);
+            if (transactionToEdit) {
+                await transactionsService.update(transactionToEdit.id, incomeForm);
+            } else {
+                await transactionsService.createIncome(incomeForm);
+            }
             onTransactionCreated(); // Trigger refresh
             handleClose();
         } catch (error) {
-            console.error('Failed to create income:', error);
-            alert('Gagal menambah pemasukan');
+            console.error('Failed to save income:', error);
+            alert('Gagal menyimpan pemasukan');
         }
     };
 
@@ -151,24 +191,56 @@ export default function TransactionFlowModal() {
         }
 
         try {
-            await transactionsService.createExpense(expenseForm);
+            if (transactionToEdit) {
+                await transactionsService.update(transactionToEdit.id, expenseForm);
+            } else {
+                await transactionsService.createExpense(expenseForm);
+            }
             onTransactionCreated(); // Trigger refresh
             handleClose();
         } catch (error: any) {
-            console.error('Failed to create expense:', error);
+            console.error('Failed to save expense:', error);
             if (error.response?.data?.error === 'Insufficient balance') {
                 alert('Saldo tidak mencukupi');
             } else {
-                alert('Gagal menambah pengeluaran');
+                alert('Gagal menyimpan pengeluaran');
             }
         }
     };
+
+    const filteredAssets = assets.filter(a => a.currency === currency);
+
+    const CurrencyTabs = () => (
+        <div className="flex p-1 bg-gray-100 rounded-lg mb-4 border-2 border-black shadow-[2px_2px_0px_0px_#000000]">
+            <button
+                type="button"
+                onClick={() => setCurrency('JPY')}
+                className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${currency === 'JPY'
+                    ? 'bg-[#E0B0FF] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000000]'
+                    : 'text-gray-500 hover:text-black'
+                    }`}
+            >
+                JPY (¥)
+            </button>
+            <button
+                type="button"
+                onClick={() => setCurrency('IDR')}
+                className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${currency === 'IDR'
+                    ? 'bg-[#E0B0FF] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000000]'
+                    : 'text-gray-500 hover:text-black'
+                    }`}
+            >
+                IDR (Rp)
+            </button>
+        </div>
+    );
 
     // Render Steps
     if (step === 'type-selection') {
         return (
             <Modal isOpen={isOpen} onClose={handleClose} title="Pilih Jenis Transaksi">
                 <div className="flex flex-col gap-4 p-4">
+                    <CurrencyTabs />
                     <button
                         onClick={() => setStep('income')}
                         className="flex flex-row items-center gap-4 p-6 bg-[#e6f4ff] border-[3px] border-black rounded-xl hover:bg-[#d0eaff] active:scale-95 transition-all shadow-[4px_4px_0px_0px_#000000] w-full"
@@ -197,20 +269,23 @@ export default function TransactionFlowModal() {
             <Modal
                 isOpen={isOpen}
                 onClose={handleClose}
-                title="Tambah Pemasukan"
+                title={transactionToEdit ? "Edit Pemasukan" : "Tambah Pemasukan"}
                 footer={
                     <>
                         <Button variant="secondary" onClick={handleClose} className="flex-1">Batal</Button>
-                        <Button variant="primary" onClick={handleIncomeSubmit} className="flex-1">Tambah</Button>
+                        <Button variant="primary" onClick={handleIncomeSubmit} className="flex-1">
+                            {transactionToEdit ? "Simpan Perubahan" : "Tambah"}
+                        </Button>
                     </>
                 }
             >
                 <form onSubmit={handleIncomeSubmit}>
+                    <CurrencyTabs />
                     <Select
                         label="Aset"
                         value={incomeForm.asset_id.toString()}
                         onChange={(e) => setIncomeForm({ ...incomeForm, asset_id: parseInt(e.target.value) })}
-                        options={[{ value: '0', label: 'Pilih Aset' }, ...assets.map(a => ({ value: a.id.toString(), label: `${a.name} (${a.currency})` }))]}
+                        options={[{ value: '0', label: 'Pilih Aset' }, ...filteredAssets.map(a => ({ value: a.id.toString(), label: `${a.name} (${a.currency})` }))]}
                         error={incomeErrors.asset_id}
                         required
                     />
@@ -256,15 +331,18 @@ export default function TransactionFlowModal() {
                 <Modal
                     isOpen={isOpen}
                     onClose={handleClose}
-                    title="Tambah Pengeluaran"
+                    title={transactionToEdit ? "Edit Pengeluaran" : "Tambah Pengeluaran"}
                     footer={
                         <>
                             <Button variant="secondary" onClick={handleClose} className="flex-1">Batal</Button>
-                            <Button variant="primary" onClick={handleExpenseSubmit} className="flex-1">Tambah</Button>
+                            <Button variant="primary" onClick={handleExpenseSubmit} className="flex-1">
+                                {transactionToEdit ? "Simpan Perubahan" : "Tambah"}
+                            </Button>
                         </>
                     }
                 >
                     <form onSubmit={handleExpenseSubmit}>
+                        <CurrencyTabs />
                         {/* Scan Receipt Button */}
                         <div className="mb-4">
                             <button
@@ -281,7 +359,7 @@ export default function TransactionFlowModal() {
                             label="Aset"
                             value={expenseForm.asset_id.toString()}
                             onChange={(e) => setExpenseForm({ ...expenseForm, asset_id: parseInt(e.target.value) })}
-                            options={[{ value: '0', label: 'Pilih Aset' }, ...assets.map(a => ({ value: a.id.toString(), label: `${a.name} (${a.currency})` }))]}
+                            options={[{ value: '0', label: 'Pilih Aset' }, ...filteredAssets.map(a => ({ value: a.id.toString(), label: `${a.name} (${a.currency})` }))]}
                             error={expenseErrors.asset_id}
                             required
                         />

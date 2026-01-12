@@ -22,14 +22,15 @@ export default function DashboardPage() {
     const [charts, setCharts] = useState<DashboardCharts | null>(null);
     const [loading, setLoading] = useState(true);
     const [greeting, setGreeting] = useState('');
+    const [currency, setCurrency] = useState<'JPY' | 'IDR'>('JPY');
     const router = useRouter();
     const { openModal, setOnTransactionCreated } = useTransactionModal();
 
     const loadDashboardData = useCallback(async () => {
         try {
             const [summaryData, chartsData] = await Promise.all([
-                dashboardService.getSummary(),
-                dashboardService.getCharts(),
+                dashboardService.getSummary(currency),
+                dashboardService.getCharts(currency),
             ]);
 
             // Mock data for new features if backend doesn't provide them yet
@@ -52,12 +53,12 @@ export default function DashboardPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [currency]);
 
     useEffect(() => {
         loadDashboardData();
         setGreeting(getGreeting());
-    }, [loadDashboardData]);
+    }, [loadDashboardData, currency]);
 
     useEffect(() => {
         // Set callback untuk refresh data setelah transaksi dibuat
@@ -150,7 +151,7 @@ export default function DashboardPage() {
         return (
             <div style={style}>
                 <p className="font-bold text-black">{data.category}</p>
-                <p className="text-black">{formatCurrency(Number(data.amount), 'JPY')}</p>
+                <p className="text-black">{formatCurrency(Number(data.amount), currency)}</p>
             </div>
         );
     };
@@ -166,11 +167,36 @@ export default function DashboardPage() {
                     <p className="text-lg font-bold mb-1">{userName}</p>
                     <p className="text-sm md:text-base text-[#737373]">Ringkasan keuangan kamu...</p>
                 </div>
+                <div className="flex gap-2">
+                    {/* Currency Toggle Removed from Header */}
+                </div>
                 <div className="hidden md:flex gap-2">
-                    <Button variant="primary" size="sm" className="flex items-center gap-2" onClick={openModal}>
+                    <Button variant="primary" size="sm" className="flex items-center gap-2" onClick={() => openModal()}>
                         <PlusCircle className="w-4 h-4" /> Tambah Transaksi
                     </Button>
                 </div>
+            </div>
+
+            {/* Currency Tabs */}
+            <div className="flex gap-2 mb-2 p-1 bg-gray-100 rounded-lg w-full border-2 border-black">
+                <button
+                    onClick={() => setCurrency('JPY')}
+                    className={`flex-1 px-4 py-2 text-sm font-bold rounded-md transition-all whitespace-nowrap ${currency === 'JPY'
+                        ? 'bg-[#E0B0FF] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000000]'
+                        : 'text-gray-500 hover:text-black'
+                        }`}
+                >
+                    JPY
+                </button>
+                <button
+                    onClick={() => setCurrency('IDR')}
+                    className={`flex-1 px-4 py-2 text-sm font-bold rounded-md transition-all whitespace-nowrap ${currency === 'IDR'
+                        ? 'bg-[#E0B0FF] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000000]'
+                        : 'text-gray-500 hover:text-black'
+                        }`}
+                >
+                    IDR
+                </button>
             </div>
 
             {/* Main Content Grid */}
@@ -192,7 +218,7 @@ export default function DashboardPage() {
                                         <span className="text-[#737373] text-xs sm:text-sm font-medium">Total Pemasukan</span>
                                     </div>
                                     <span className="text-lg sm:text-2xl font-bold text-[#4da6ff] break-all">
-                                        {formatCurrency(incomeTotal, 'JPY')}
+                                        {formatCurrency(incomeTotal, currency)}
                                     </span>
                                 </div>
 
@@ -206,7 +232,7 @@ export default function DashboardPage() {
                                         <span className="text-[#737373] text-xs sm:text-sm font-medium">Total Pengeluaran</span>
                                     </div>
                                     <span className="text-lg sm:text-2xl font-bold text-[#f2727d] break-all">
-                                        {formatCurrency(expenseTotal, 'JPY')}
+                                        {formatCurrency(expenseTotal, currency)}
                                     </span>
                                 </div>
                             </div>
@@ -265,7 +291,7 @@ export default function DashboardPage() {
                                     </ResponsiveContainer>
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-8">
                                         <div className="text-center">
-                                            <p className="text-2xl font-bold">¥{formatCompactNumber(expenseTotal)}</p>
+                                            <p className="text-2xl font-bold">{currency === 'JPY' ? '¥' : 'Rp'}{formatCompactNumber(expenseTotal)}</p>
                                         </div>
                                     </div>
                                 </div>

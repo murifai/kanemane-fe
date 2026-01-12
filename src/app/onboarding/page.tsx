@@ -15,7 +15,7 @@ type Step = 'loading' | 'welcome' | 'user-details' | 'create-assets' | 'select-p
 
 interface AssetForm {
     name: string;
-    type: 'tabungan' | 'e-money' | 'investasi';
+    type: 'tabungan' | 'e-money' | 'investasi' | 'cash';
     country: 'JP' | 'ID';
     currency: 'JPY' | 'IDR';
     balance: number;
@@ -378,6 +378,7 @@ export default function OnboardingPage() {
                                                 <option value="tabungan">Tabungan</option>
                                                 <option value="e-money">E-Money</option>
                                                 <option value="investasi">Investasi</option>
+                                                <option value="cash">Cash</option>
                                             </select>
                                         </div>
 

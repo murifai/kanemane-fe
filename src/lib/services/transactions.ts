@@ -3,8 +3,8 @@ import type { Transaction, Income, Expense, CreateIncomeData, CreateExpenseData,
 
 export const transactionsService = {
     // Get all transactions
-    getAll: async (): Promise<Transaction[]> => {
-        const response = await api.get('/transactions');
+    getAll: async (currency: 'JPY' | 'IDR' = 'JPY'): Promise<Transaction[]> => {
+        const response = await api.get('/transactions', { params: { currency } });
         return response.data;
     },
 
@@ -29,6 +29,12 @@ export const transactionsService = {
     // Delete transaction
     delete: async (id: number): Promise<void> => {
         await api.delete(`/transactions/${id}`);
+    },
+
+    // Update transaction
+    update: async (id: number, data: CreateIncomeData | CreateExpenseData): Promise<Transaction> => {
+        const response = await api.put(`/transactions/${id}`, data);
+        return response.data;
     },
 
     // Scan receipt

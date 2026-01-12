@@ -3,13 +3,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Wallet, Receipt, User } from 'lucide-react';
+import { LayoutDashboard, Wallet, ArrowDownUp, User } from 'lucide-react';
 import MobileNav from './MobileNav';
 
 const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/dashboard/transactions', label: 'Transaksi', icon: ArrowDownUp },
     { href: '/dashboard/assets', label: 'Aset', icon: Wallet },
-    { href: '/dashboard/transactions', label: 'Transaksi', icon: Receipt },
     { href: '/dashboard/profile', label: 'Profil', icon: User },
 ];
 
@@ -53,12 +53,7 @@ export default function Sidebar() {
                 </nav>
 
                 {/* User section */}
-                <div className="mt-auto pt-8">
-                    <div className="border-[3px] border-black bg-[#fafafa] p-4">
-                        <p className="font-bold text-sm">Pengguna</p>
-                        <p className="text-xs text-[#737373]">user@example.com</p>
-                    </div>
-                </div>
+
             </aside>
             <MobileNav />
         </>

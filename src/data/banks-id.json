@@ -1,0 +1,410 @@
+[
+  {
+    "value": "Allo Bank",
+    "label": "Allo Bank"
+  },
+  {
+    "value": "Altopay",
+    "label": "Altopay"
+  },
+  {
+    "value": "Amar Bank",
+    "label": "Amar Bank"
+  },
+  {
+    "value": "Bank Aceh",
+    "label": "Bank Aceh"
+  },
+  {
+    "value": "Bank Aladin",
+    "label": "Bank Aladin"
+  },
+  {
+    "value": "Bank ANZ",
+    "label": "Bank ANZ"
+  },
+  {
+    "value": "Bank Artha Graha",
+    "label": "Bank Artha Graha"
+  },
+  {
+    "value": "Bank Banten",
+    "label": "Bank Banten"
+  },
+  {
+    "value": "Bank BCA Digital (Bank Royal)",
+    "label": "Bank BCA Digital (Bank Royal)"
+  },
+  {
+    "value": "Bank BCA Syariah",
+    "label": "Bank BCA Syariah"
+  },
+  {
+    "value": "Bank BJB",
+    "label": "Bank BJB"
+  },
+  {
+    "value": "Bank BPD Bali",
+    "label": "Bank BPD Bali"
+  },
+  {
+    "value": "Bank BPD D.I.Y",
+    "label": "Bank BPD D.I.Y"
+  },
+  {
+    "value": "Bank BPR Danagung Abadi",
+    "label": "Bank BPR Danagung Abadi"
+  },
+  {
+    "value": "Bank BPR Danagung Bakti",
+    "label": "Bank BPR Danagung Bakti"
+  },
+  {
+    "value": "Bank BPR Danagung Ramulti",
+    "label": "Bank BPR Danagung Ramulti"
+  },
+  {
+    "value": "Bank BPR Eka Bumi Artha",
+    "label": "Bank BPR Eka Bumi Artha"
+  },
+  {
+    "value": "Bank BPR Karyajatnika Sadaya",
+    "label": "Bank BPR Karyajatnika Sadaya"
+  },
+  {
+    "value": "Bank BPR Supra Artapersada",
+    "label": "Bank BPR Supra Artapersada"
+  },
+  {
+    "value": "Bank BRKSyariah (Bank Riau Kepri)",
+    "label": "Bank BRKSyariah (Bank Riau Kepri)"
+  },
+  {
+    "value": "Bank Bukopin Syariah",
+    "label": "Bank Bukopin Syariah"
+  },
+  {
+    "value": "Bank Bumi Arta",
+    "label": "Bank Bumi Arta"
+  },
+  {
+    "value": "Bank Capital",
+    "label": "Bank Capital"
+  },
+  {
+    "value": "Bank CCB Indonesia",
+    "label": "Bank CCB Indonesia"
+  },
+  {
+    "value": "Bank Central Asia (BCA)",
+    "label": "Bank Central Asia (BCA)"
+  },
+  {
+    "value": "Bank Chinatrust Indonesia",
+    "label": "Bank Chinatrust Indonesia"
+  },
+  {
+    "value": "Bank CIMB Niaga",
+    "label": "Bank CIMB Niaga"
+  },
+  {
+    "value": "Bank CNB",
+    "label": "Bank CNB"
+  },
+  {
+    "value": "Bank Commonwealth",
+    "label": "Bank Commonwealth"
+  },
+  {
+    "value": "Bank Danamon",
+    "label": "Bank Danamon"
+  },
+  {
+    "value": "Bank DBS",
+    "label": "Bank DBS"
+  },
+  {
+    "value": "Bank DKI",
+    "label": "Bank DKI"
+  },
+  {
+    "value": "Bank Ganesha",
+    "label": "Bank Ganesha"
+  },
+  {
+    "value": "Bank Harda International",
+    "label": "Bank Harda International"
+  },
+  {
+    "value": "Bank HSBC",
+    "label": "Bank HSBC"
+  },
+  {
+    "value": "Bank IBK",
+    "label": "Bank IBK"
+  },
+  {
+    "value": "Bank ICBC Indonesia",
+    "label": "Bank ICBC Indonesia"
+  },
+  {
+    "value": "Bank Ina Perdana",
+    "label": "Bank Ina Perdana"
+  },
+  {
+    "value": "Bank Index Selindo",
+    "label": "Bank Index Selindo"
+  },
+  {
+    "value": "Bank Jabar Banten Syariah (bjb Syariah)",
+    "label": "Bank Jabar Banten Syariah (bjb Syariah)"
+  },
+  {
+    "value": "Bank Jago",
+    "label": "Bank Jago"
+  },
+  {
+    "value": "Bank Jambi",
+    "label": "Bank Jambi"
+  },
+  {
+    "value": "Bank Jasa Jakarta",
+    "label": "Bank Jasa Jakarta"
+  },
+  {
+    "value": "Bank Jateng",
+    "label": "Bank Jateng"
+  },
+  {
+    "value": "Bank Jatim",
+    "label": "Bank Jatim"
+  },
+  {
+    "value": "Bank Jtrust",
+    "label": "Bank Jtrust"
+  },
+  {
+    "value": "Bank Kalbar",
+    "label": "Bank Kalbar"
+  },
+  {
+    "value": "Bank Kalteng",
+    "label": "Bank Kalteng"
+  },
+  {
+    "value": "Bank Kaltimtara",
+    "label": "Bank Kaltimtara"
+  },
+  {
+    "value": "Bank KB Bukopin.",
+    "label": "Bank KB Bukopin."
+  },
+  {
+    "value": "Bank KEB Hana",
+    "label": "Bank KEB Hana"
+  },
+  {
+    "value": "Bank Maluku Malut",
+    "label": "Bank Maluku Malut"
+  },
+  {
+    "value": "Bank Mandiri",
+    "label": "Bank Mandiri"
+  },
+  {
+    "value": "Bank Mandiri Taspen Pos",
+    "label": "Bank Mandiri Taspen Pos"
+  },
+  {
+    "value": "Bank Maspion",
+    "label": "Bank Maspion"
+  },
+  {
+    "value": "Bank Mayapada",
+    "label": "Bank Mayapada"
+  },
+  {
+    "value": "Bank Maybank Indonesia",
+    "label": "Bank Maybank Indonesia"
+  },
+  {
+    "value": "Bank Mayora",
+    "label": "Bank Mayora"
+  },
+  {
+    "value": "Bank Mega",
+    "label": "Bank Mega"
+  },
+  {
+    "value": "Bank Mega Syariah",
+    "label": "Bank Mega Syariah"
+  },
+  {
+    "value": "Bank Mestika Dharma",
+    "label": "Bank Mestika Dharma"
+  },
+  {
+    "value": "Bank MNC Internasional Tbk",
+    "label": "Bank MNC Internasional Tbk"
+  },
+  {
+    "value": "Bank Muamalat",
+    "label": "Bank Muamalat"
+  },
+  {
+    "value": "Bank MUFG",
+    "label": "Bank MUFG"
+  },
+  {
+    "value": "Bank Murtiarta Sentosa",
+    "label": "Bank Murtiarta Sentosa"
+  },
+  {
+    "value": "Bank Nagari (Sumbar)",
+    "label": "Bank Nagari (Sumbar)"
+  },
+  {
+    "value": "Bank National Nobu",
+    "label": "Bank National Nobu"
+  },
+  {
+    "value": "Bank Negara Indonesia (BNI)",
+    "label": "Bank Negara Indonesia (BNI)"
+  },
+  {
+    "value": "Bank Neo Commerce",
+    "label": "Bank Neo Commerce"
+  },
+  {
+    "value": "Bank OCBC NISP",
+    "label": "Bank OCBC NISP"
+  },
+  {
+    "value": "Bank of China",
+    "label": "Bank of China"
+  },
+  {
+    "value": "Bank of India Indonesia",
+    "label": "Bank of India Indonesia"
+  },
+  {
+    "value": "Bank Oke Indonesia",
+    "label": "Bank Oke Indonesia"
+  },
+  {
+    "value": "Bank Panin",
+    "label": "Bank Panin"
+  },
+  {
+    "value": "Bank Panin Dubai Syariah",
+    "label": "Bank Panin Dubai Syariah"
+  },
+  {
+    "value": "Bank Papua",
+    "label": "Bank Papua"
+  },
+  {
+    "value": "Bank Permata",
+    "label": "Bank Permata"
+  },
+  {
+    "value": "Bank QNB Indonesia",
+    "label": "Bank QNB Indonesia"
+  },
+  {
+    "value": "Bank Rakyat Indonesia (BRI)",
+    "label": "Bank Rakyat Indonesia (BRI)"
+  },
+  {
+    "value": "Bank Raya",
+    "label": "Bank Raya"
+  },
+  {
+    "value": "Bank Sahabat Sampoerna",
+    "label": "Bank Sahabat Sampoerna"
+  },
+  {
+    "value": "Bank SBI Indonesia (Indomonex)",
+    "label": "Bank SBI Indonesia (Indomonex)"
+  },
+  {
+    "value": "Bank Seabank Indonesia",
+    "label": "Bank Seabank Indonesia"
+  },
+  {
+    "value": "Bank Shinhan",
+    "label": "Bank Shinhan"
+  },
+  {
+    "value": "Bank Sinarmas",
+    "label": "Bank Sinarmas"
+  },
+  {
+    "value": "Bank Sulsebar",
+    "label": "Bank Sulsebar"
+  },
+  {
+    "value": "Bank Sumsel and Babel",
+    "label": "Bank Sumsel and Babel"
+  },
+  {
+    "value": "Bank Sumut",
+    "label": "Bank Sumut"
+  },
+  {
+    "value": "Bank Syariah Indonesia (BSI)",
+    "label": "Bank Syariah Indonesia (BSI)"
+  },
+  {
+    "value": "Bank Tabungan Pensiun Nasional (BTPN)",
+    "label": "Bank Tabungan Pensiun Nasional (BTPN)"
+  },
+  {
+    "value": "Bank Tabungan Pensiun Nasional Syariah (BTPN Syariah)",
+    "label": "Bank Tabungan Pensiun Nasional Syariah (BTPN Syariah)"
+  },
+  {
+    "value": "Bank Tabungan Pensiunan Nasional",
+    "label": "Bank Tabungan Pensiunan Nasional"
+  },
+  {
+    "value": "Bank Tabunngan Negara (BTN)",
+    "label": "Bank Tabunngan Negara (BTN)"
+  },
+  {
+    "value": "Bank UOB Indonesia",
+    "label": "Bank UOB Indonesia"
+  },
+  {
+    "value": "Bank Victoria International",
+    "label": "Bank Victoria International"
+  },
+  {
+    "value": "Bank Victoria Syariah",
+    "label": "Bank Victoria Syariah"
+  },
+  {
+    "value": "Bank Woori Saudara",
+    "label": "Bank Woori Saudara"
+  },
+  {
+    "value": "Citibank",
+    "label": "Citibank"
+  },
+  {
+    "value": "Indosat Dompetku",
+    "label": "Indosat Dompetku"
+  },
+  {
+    "value": "Link Aja",
+    "label": "Link Aja"
+  },
+  {
+    "value": "Prima Master Bank",
+    "label": "Prima Master Bank"
+  },
+  {
+    "value": "Standard Chartered",
+    "label": "Standard Chartered"
+  }
+]

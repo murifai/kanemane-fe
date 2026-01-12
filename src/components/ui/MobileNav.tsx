@@ -8,9 +8,9 @@ import { useTransactionModal } from '@/context/TransactionModalContext';
 
 const mobileNavItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/assets', label: 'Aset', icon: Wallet },
-    { href: '#', label: 'Tambah', icon: Plus, isAction: true }, // Changed href to '#'
     { href: '/dashboard/transactions', label: 'Transaksi', icon: ArrowDownUp },
+    { href: '#', label: 'Tambah', icon: Plus, isAction: true }, // Changed href to '#'
+    { href: '/dashboard/assets', label: 'Aset', icon: Wallet },
     { href: '/dashboard/profile', label: 'Profil', icon: User },
 ];
 

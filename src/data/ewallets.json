@@ -1,0 +1,29 @@
+{
+  "JP": [
+    { "value": "iccard", "label": "IC (Suica, Icoca, dll)" },
+    { "value": "paypay", "label": "PayPay" },
+    { "value": "line_pay", "label": "LINE Pay" },
+    { "value": "rakuten_pay", "label": "Rakuten Pay" },
+    { "value": "d_barai", "label": "dBarai" },
+    { "value": "au_pay", "label": "au PAY" },
+    { "value": "mercari_pay", "label": "Merpay (Mercari)" },
+    { "value": "waon", "label": "WAON" },
+    { "value": "nanaco", "label": "nanaco" },
+    { "value": "edy", "label": "Rakuten Edy" },
+    { "value": "id", "label": "iD" },
+    { "value": "quicpay", "label": "QUICPay" },
+    { "value": "other", "label": "Lainnya" }
+  ],
+  "ID": [
+    { "value": "gopay", "label": "GoPay" },
+    { "value": "ovo", "label": "OVO" },
+    { "value": "dana", "label": "DANA" },
+    { "value": "shopeepay", "label": "ShopeePay" },
+    { "value": "linkaja", "label": "LinkAja" },
+    { "value": "sakuku", "label": "Sakuku" },
+    { "value": "jenius", "label": "Jenius" },
+    { "value": "blu", "label": "Blu BCA" },
+    { "value": "jago", "label": "Jago" },
+    { "value": "other", "label": "Lainnya" }
+  ]
+}

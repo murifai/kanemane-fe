@@ -1,24 +1,30 @@
 'use client';
 
+// ... (imports)
 import React, { useEffect, useState } from 'react';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input, { Select } from '@/components/ui/Input';
+import Combobox from '@/components/ui/Combobox';
 import { assetsService } from '@/lib/services/assets';
+import { dashboardService } from '@/lib/services/dashboard';
 import type { Asset, CreateAssetData } from '@/lib/types';
 import { Wallet, Edit, Trash2, PlusCircle } from 'lucide-react';
 
+import banksJp from '@/data/banks-jp.json';
+import banksId from '@/data/banks-id.json';
+import ewallets from '@/data/ewallets.json';
+
 export default function AssetsPage() {
+    // ... (keep existing state)
     const [assets, setAssets] = useState<{ personal: Asset[]; family: Asset[] } | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'JPY' | 'IDR'>('JPY');
     const [totalCurrency, setTotalCurrency] = useState<'JPY' | 'IDR'>('JPY');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
-
-    // Approximate exchange rate
-    const JPY_TO_IDR = 107;
+    const [exchangeRate, setExchangeRate] = useState(107);
 
     const calculateAllAssets = () => {
         if (!assets) return [];
@@ -34,9 +40,9 @@ export default function AssetsPage() {
                 total += amount;
             } else {
                 if (targetCurrency === 'IDR') {
-                    total += amount * JPY_TO_IDR;
+                    total += amount * exchangeRate;
                 } else {
-                    total += amount / JPY_TO_IDR;
+                    total += amount / exchangeRate;
                 }
             }
         });
@@ -56,10 +62,16 @@ export default function AssetsPage() {
 
     const loadAssets = async () => {
         try {
-            const data = await assetsService.getAll();
-            setAssets(data);
+            const [assetsData, summaryData] = await Promise.all([
+                assetsService.getAll(),
+                dashboardService.getSummary('JPY')
+            ]);
+            setAssets(assetsData);
+            if (summaryData.exchange_rate) {
+                setExchangeRate(summaryData.exchange_rate);
+            }
         } catch (error) {
-            console.error('Gagal memuat aset:', error);
+            console.error('Gagal memuat data:', error);
         } finally {
             setLoading(false);
         }
@@ -132,15 +144,28 @@ export default function AssetsPage() {
             tabungan: 'Tabungan',
             'e-money': 'E-Money',
             investasi: 'Investasi',
+            cash: 'Cash',
         };
         return labels[type] || type;
     };
 
+    // Helper to get options based on type and country
+    const getNameOptions = () => {
+        const { type, country } = formData;
+        if (type === 'tabungan') {
+            return country === 'JP' ? banksJp : banksId;
+        }
+        if (type === 'e-money') {
+            return country === 'JP' ? ewallets.JP : ewallets.ID;
+        }
+        return [];
+    };
+
+    const showCombobox = formData.type === 'tabungan' || formData.type === 'e-money';
+
     if (loading) {
         return <div className="text-xl md:text-2xl font-bold">Memuat...</div>;
     }
-
-    const allAssets = [...(assets?.personal || []), ...(assets?.family || [])];
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -191,17 +216,17 @@ export default function AssetsPage() {
                             {formatCurrency(calculateGrandTotal(totalCurrency), totalCurrency)}
                         </p>
                         <p className="text-sm text-[#737373] mt-2">
-                            *Estimasi konversi: 1 JPY = {JPY_TO_IDR} IDR
+                            *Rate: 1 JPY = {new Intl.NumberFormat('id-ID').format(exchangeRate)} IDR
                         </p>
                     </CardContent>
                 </Card>
             </div>
 
             {/* Currency Tabs */}
-            <div className="flex gap-2 mb-6 p-1 bg-gray-100 rounded-lg w-full sm:w-fit border-2 border-black">
+            <div className="flex gap-2 mb-6 p-1 bg-gray-100 rounded-lg w-full border-2 border-black">
                 <button
                     onClick={() => setActiveTab('JPY')}
-                    className={`flex-1 sm:flex-none px-4 py-2 text-sm font-bold rounded-md transition-all whitespace-nowrap ${activeTab === 'JPY'
+                    className={`flex-1 px-4 py-2 text-sm font-bold rounded-md transition-all whitespace-nowrap ${activeTab === 'JPY'
                         ? 'bg-[#73cfd9] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                         : 'hover:bg-gray-200 text-gray-600'
                         }`}
@@ -210,7 +235,7 @@ export default function AssetsPage() {
                 </button>
                 <button
                     onClick={() => setActiveTab('IDR')}
-                    className={`flex-1 sm:flex-none px-4 py-2 text-sm font-bold rounded-md transition-all whitespace-nowrap ${activeTab === 'IDR'
+                    className={`flex-1 px-4 py-2 text-sm font-bold rounded-md transition-all whitespace-nowrap ${activeTab === 'IDR'
                         ? 'bg-[#73cfd9] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                         : 'hover:bg-gray-200 text-gray-600'
                         }`}
@@ -307,13 +332,6 @@ export default function AssetsPage() {
                 }
             >
                 <form onSubmit={handleSubmit}>
-                    <Input
-                        label="Nama Aset"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        required
-                    />
-
                     <Select
                         label="Jenis"
                         value={formData.type}
@@ -322,6 +340,7 @@ export default function AssetsPage() {
                             { value: 'tabungan', label: 'Tabungan' },
                             { value: 'e-money', label: 'E-Money' },
                             { value: 'investasi', label: 'Investasi' },
+                            { value: 'cash', label: 'Cash' },
                         ]}
                     />
 
@@ -342,6 +361,25 @@ export default function AssetsPage() {
                         ]}
                         required
                     />
+
+                    {showCombobox ? (
+                        <Combobox
+                            label="Nama Aset"
+                            value={formData.name}
+                            onChange={(value) => setFormData({ ...formData, name: value })}
+                            options={getNameOptions()}
+                            placeholder="Pilih atau ketik nama aset..."
+                            required
+                        />
+                    ) : (
+                        <Input
+                            label="Nama Aset"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            required
+                        />
+                    )}
+
                     <Input
                         label="Saldo"
                         type="number"
