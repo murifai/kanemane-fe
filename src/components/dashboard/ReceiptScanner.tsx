@@ -15,13 +15,16 @@ export default function ReceiptScanner({ onScanComplete, onClose }: ReceiptScann
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isScanning, setIsScanning] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Separate refs for gallery and camera inputs
+    const galleryInputRef = useRef<HTMLInputElement>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Validate file type
+        // Validate file type (including HEIC for iPhone)
         if (!file.type.startsWith('image/')) {
             setError('File harus berupa gambar');
             return;
@@ -50,8 +53,18 @@ export default function ReceiptScanner({ onScanComplete, onClose }: ReceiptScann
         setIsScanning(true);
         setError(null);
 
+        // Create timeout promise (30 seconds)
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout: Proses scan terlalu lama')), 30000);
+        });
+
         try {
-            const response = await transactionsService.scanReceipt(selectedImage);
+            // Race between API call and timeout
+            const response = await Promise.race([
+                transactionsService.scanReceipt(selectedImage),
+                timeoutPromise
+            ]) as any;
+
             if (response.success) {
                 // Simpan resi ke localStorage
                 const savedReceipts = JSON.parse(localStorage.getItem('scannedReceipts') || '[]');
@@ -67,9 +80,17 @@ export default function ReceiptScanner({ onScanComplete, onClose }: ReceiptScann
             } else {
                 setError('Gagal memindai resi. Silakan coba lagi.');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Receipt scan error:', err);
-            setError('Terjadi kesalahan saat memindai resi. Pastikan gambar jelas dan terbaca.');
+
+            // More specific error messages
+            if (err.message?.includes('Timeout')) {
+                setError('Proses scan terlalu lama. Coba gunakan gambar yang lebih kecil atau koneksi yang lebih baik.');
+            } else if (err.response?.status === 422) {
+                setError('Format gambar tidak didukung. Gunakan JPEG, PNG, atau HEIC.');
+            } else {
+                setError(`Terjadi kesalahan: ${err.message || 'Pastikan gambar jelas dan terbaca.'}`);
+            }
         } finally {
             setIsScanning(false);
         }
@@ -79,8 +100,13 @@ export default function ReceiptScanner({ onScanComplete, onClose }: ReceiptScann
         setSelectedImage(null);
         setImagePreview(null);
         setError(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
+
+        // Reset both inputs
+        if (galleryInputRef.current) {
+            galleryInputRef.current.value = '';
+        }
+        if (cameraInputRef.current) {
+            cameraInputRef.current.value = '';
         }
     };
 
@@ -100,11 +126,19 @@ export default function ReceiptScanner({ onScanComplete, onClose }: ReceiptScann
 
                 {/* Content */}
                 <div className="p-4 space-y-4">
-                    {/* File Input */}
+                    {/* Separate File Inputs for Gallery and Camera */}
                     <input
-                        ref={fileInputRef}
+                        ref={galleryInputRef}
                         type="file"
-                        accept="image/jpeg,image/jpg,image/png"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                    />
+                    <input
+                        ref={cameraInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
                         onChange={handleFileSelect}
                         className="hidden"
                     />
@@ -112,7 +146,7 @@ export default function ReceiptScanner({ onScanComplete, onClose }: ReceiptScann
                     {!imagePreview ? (
                         <div className="space-y-3">
                             <button
-                                onClick={() => fileInputRef.current?.click()}
+                                onClick={() => galleryInputRef.current?.click()}
                                 className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
                             >
                                 <Upload className="w-5 h-5" />
@@ -120,13 +154,7 @@ export default function ReceiptScanner({ onScanComplete, onClose }: ReceiptScann
                             </button>
 
                             <button
-                                onClick={() => {
-                                    const input = fileInputRef.current;
-                                    if (input) {
-                                        input.setAttribute('capture', 'environment');
-                                        input.click();
-                                    }
-                                }}
+                                onClick={() => cameraInputRef.current?.click()}
                                 className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
                             >
                                 <Camera className="w-5 h-5" />
@@ -180,7 +208,7 @@ export default function ReceiptScanner({ onScanComplete, onClose }: ReceiptScann
 
                     {/* Info */}
                     <div className="text-xs text-gray-500 space-y-1">
-                        <p>• Format: JPEG, JPG, PNG</p>
+                        <p>• Format: JPEG, PNG, HEIC (iPhone)</p>
                         <p>• Ukuran maksimal: 10MB</p>
                         <p>• Pastikan gambar resi jelas dan terbaca</p>
                     </div>
