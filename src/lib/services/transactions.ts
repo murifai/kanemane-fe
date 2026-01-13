@@ -49,4 +49,16 @@ export const transactionsService = {
         });
         return response.data;
     },
+
+    // Get budget
+    getBudget: async (currency: 'JPY' | 'IDR', month?: string): Promise<{ amount: number; currency: 'JPY' | 'IDR'; month: string; is_fallback?: boolean }> => {
+        const response = await api.get('/budgets', { params: { currency, month } });
+        return response.data;
+    },
+
+    // Set budget
+    setBudget: async (currency: 'JPY' | 'IDR', amount: number, month: string): Promise<{ amount: number; currency: 'JPY' | 'IDR'; month: string }> => {
+        const response = await api.post('/budgets', { currency, amount, month });
+        return response.data;
+    },
 };

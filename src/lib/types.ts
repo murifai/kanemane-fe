@@ -14,6 +14,14 @@ export interface Asset {
     is_primary_idr?: boolean;
 }
 
+export interface Budget {
+    amount: number;
+    currency: 'JPY' | 'IDR';
+    month: string;
+    is_fallback?: boolean;
+    source_month?: string | null;
+}
+
 // Transaction types
 export interface Income {
     id: number;
@@ -71,6 +79,7 @@ export interface DashboardSummary {
     recent_transactions?: Transaction[];
     goals?: Goal[];
     exchange_rate?: number;
+    budget_amount?: number;
 }
 
 export interface MonthlyTrend {
@@ -151,6 +160,11 @@ export interface User {
     avatar?: string;
     language?: string;
     phone?: string;
+    subscription?: {
+        plan: string;
+        status: string;
+        features: Record<string, boolean>;
+    };
 }
 
 // Onboarding types

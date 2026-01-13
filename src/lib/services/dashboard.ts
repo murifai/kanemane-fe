@@ -13,4 +13,14 @@ export const dashboardService = {
         const response = await api.get('/dashboard/charts', { params: { currency } });
         return response.data;
     },
+
+    // Update budget for current month
+    updateBudget: async (currency: 'JPY' | 'IDR', amount: number): Promise<void> => {
+        const month = new Date().toISOString().slice(0, 7); // Format: YYYY-MM
+        await api.post('/budgets', {
+            currency,
+            amount,
+            month
+        });
+    },
 };

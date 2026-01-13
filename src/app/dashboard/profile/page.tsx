@@ -37,6 +37,14 @@ export default function ProfilePage() {
                     phone: userData.phone || '',
                     avatar: userData.avatar || '',
                 });
+
+                if (userData.subscription) {
+                    setSubscription({
+                        plan: userData.subscription.plan === 'pro' ? 'Pro Plan' : 'Basic Plan',
+                        status: userData.subscription.status === 'active' ? 'Aktif' : 'Tidak Aktif',
+                        nextBilling: '-', // Backend doesn't send this yet, keep placeholder
+                    });
+                }
             } catch (error) {
                 console.error('Failed to fetch user:', error);
                 // Optionally redirect to login if auth fails? 

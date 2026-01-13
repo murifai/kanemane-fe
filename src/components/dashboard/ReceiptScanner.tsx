@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { Camera, Upload, X, Loader2 } from 'lucide-react';
 import { transactionsService } from '@/lib/services/transactions';
+import { compressImage, formatFileSize } from '@/lib/utils/imageCompression';
 import type { ReceiptScanResult } from '@/lib/types';
 
 interface ReceiptScannerProps {
@@ -14,13 +15,15 @@ export default function ReceiptScanner({ onScanComplete, onClose }: ReceiptScann
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isScanning, setIsScanning] = useState(false);
+    const [isCompressing, setIsCompressing] = useState(false);
+    const [compressionProgress, setCompressionProgress] = useState(0);
     const [error, setError] = useState<string | null>(null);
 
     // Separate refs for gallery and camera inputs
     const galleryInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -30,21 +33,38 @@ export default function ReceiptScanner({ onScanComplete, onClose }: ReceiptScann
             return;
         }
 
-        // Validate file size (max 10MB)
-        if (file.size > 10 * 1024 * 1024) {
-            setError('Ukuran file maksimal 10MB');
-            return;
+        // Show original file size for very large files
+        if (file.size > 5 * 1024 * 1024) {
+            console.log(`Large file detected: ${formatFileSize(file.size)}, will compress...`);
         }
 
-        setSelectedImage(file);
         setError(null);
+        setIsCompressing(true);
+        setCompressionProgress(0);
 
-        // Create preview
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setImagePreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+        try {
+            // Compress image before upload
+            const compressedFile = await compressImage(file, (progress) => {
+                setCompressionProgress(progress);
+            });
+
+            console.log(`Compression complete: ${formatFileSize(file.size)} → ${formatFileSize(compressedFile.size)}`);
+
+            setSelectedImage(compressedFile);
+
+            // Create preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(compressedFile);
+        } catch (err: any) {
+            console.error('Compression error:', err);
+            setError(err.message || 'Gagal mengompres gambar. Silakan coba lagi.');
+        } finally {
+            setIsCompressing(false);
+            setCompressionProgress(0);
+        }
     };
 
     const handleScan = async () => {
@@ -145,9 +165,28 @@ export default function ReceiptScanner({ onScanComplete, onClose }: ReceiptScann
 
                     {!imagePreview ? (
                         <div className="space-y-3">
+                            {/* Compression Progress */}
+                            {isCompressing && (
+                                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                                        <span className="text-sm text-blue-600 font-medium">
+                                            Mengompres gambar... {compressionProgress}%
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-blue-200 rounded-full h-2">
+                                        <div
+                                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                            style={{ width: `${compressionProgress}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
                             <button
                                 onClick={() => galleryInputRef.current?.click()}
-                                className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                                disabled={isCompressing}
+                                className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <Upload className="w-5 h-5" />
                                 <span>Pilih dari Galeri</span>
@@ -155,7 +194,8 @@ export default function ReceiptScanner({ onScanComplete, onClose }: ReceiptScann
 
                             <button
                                 onClick={() => cameraInputRef.current?.click()}
-                                className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                                disabled={isCompressing}
+                                className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <Camera className="w-5 h-5" />
                                 <span>Ambil Foto</span>
@@ -209,7 +249,7 @@ export default function ReceiptScanner({ onScanComplete, onClose }: ReceiptScann
                     {/* Info */}
                     <div className="text-xs text-gray-500 space-y-1">
                         <p>• Format: JPEG, PNG, HEIC (iPhone)</p>
-                        <p>• Ukuran maksimal: 10MB</p>
+                        <p>• Gambar akan dikompres otomatis (~1MB)</p>
                         <p>• Pastikan gambar resi jelas dan terbaca</p>
                     </div>
                 </div>

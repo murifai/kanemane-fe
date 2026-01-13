@@ -8,8 +8,8 @@ export interface OnboardingStatus {
 
 export const onboardingService = {
     // Complete onboarding with primary asset (uses auth token)
-    complete: async (primary_asset_id: number): Promise<{ message: string; user: any }> => {
-        const response = await api.post('/onboarding/complete', { primary_asset_id });
+    complete: async (data: { primary_asset_jpy_id?: number | null, primary_asset_idr_id?: number | null }): Promise<{ message: string; user: any }> => {
+        const response = await api.post('/onboarding/complete', data);
         return response.data;
     },
 

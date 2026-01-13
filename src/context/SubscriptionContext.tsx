@@ -32,6 +32,7 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
             setIsLoading(true);
             setError(null);
             const status = await subscriptionService.getStatus();
+            console.log('SubscriptionContext: Fetched status:', status);
             setSubscriptionStatus(status);
             setFeatureAccess(subscriptionService.getFeatureAccess(status));
         } catch (err: any) {

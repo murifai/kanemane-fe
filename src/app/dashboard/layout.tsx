@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Sidebar from '@/components/ui/Sidebar';
 import { TransactionModalProvider } from '@/context/TransactionModalContext';
 import { SubscriptionProvider } from '@/context/SubscriptionContext';
@@ -14,6 +14,7 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
         const checkAuthAndOnboarding = async () => {
@@ -21,6 +22,11 @@ export default function DashboardLayout({
             const token = localStorage.getItem('auth_token');
             if (!token) {
                 router.push('/');
+                return;
+            }
+
+            // Allow access to subscription page even without onboarding
+            if (pathname === '/dashboard/subscription') {
                 return;
             }
 
@@ -43,7 +49,7 @@ export default function DashboardLayout({
         };
 
         checkAuthAndOnboarding();
-    }, [router]);
+    }, [router, pathname]);
 
     return (
         <SubscriptionProvider>

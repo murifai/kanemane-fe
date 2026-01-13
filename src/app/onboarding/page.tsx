@@ -9,7 +9,10 @@ import type { Asset, CreateAssetData, User } from '@/lib/types';
 import Button from '@/components/ui/Button';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
+import Combobox from '@/components/ui/Combobox';
 import { CheckCircle2, Wallet, Plus, Trash2 } from 'lucide-react';
+import banksJp from '@/data/banks-jp.json';
+import banksId from '@/data/banks-id.json';
 
 type Step = 'loading' | 'welcome' | 'user-details' | 'create-assets' | 'select-primary' | 'complete';
 
@@ -48,7 +51,8 @@ export default function OnboardingPage() {
     });
 
     // Primary asset selection
-    const [selectedPrimaryAsset, setSelectedPrimaryAsset] = useState<number | null>(null);
+    const [selectedPrimaryJpy, setSelectedPrimaryJpy] = useState<number | null>(null);
+    const [selectedPrimaryIdr, setSelectedPrimaryIdr] = useState<number | null>(null);
 
     useEffect(() => {
         checkAuthAndStatus();
@@ -145,13 +149,24 @@ export default function OnboardingPage() {
     };
 
     const handleComplete = async () => {
-        if (!selectedPrimaryAsset) {
-            setError('Silakan pilih dompet utama.');
+        // Validation: Must select primary for created currency
+        const hasJpy = assets.some(a => a.currency === 'JPY');
+        const hasIdr = assets.some(a => a.currency === 'IDR');
+
+        if (hasJpy && !selectedPrimaryJpy) {
+            setError('Silakan pilih dompet utama JPY.');
+            return;
+        }
+        if (hasIdr && !selectedPrimaryIdr) {
+            setError('Silakan pilih dompet utama IDR.');
             return;
         }
 
         try {
-            await onboardingService.complete(selectedPrimaryAsset);
+            await onboardingService.complete({
+                primary_asset_jpy_id: selectedPrimaryJpy,
+                primary_asset_idr_id: selectedPrimaryIdr
+            });
             setStep('complete');
 
             // Redirect to dashboard after 2 seconds
@@ -360,15 +375,6 @@ export default function OnboardingPage() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-bold mb-2">Nama Aset</label>
-                                            <Input
-                                                value={form.name}
-                                                onChange={(e) => handleAssetFormChange(index, 'name', e.target.value)}
-                                                placeholder="Contoh: Dompet JPY"
-                                            />
-                                        </div>
-
-                                        <div>
                                             <label className="block text-sm font-bold mb-2">Tipe</label>
                                             <select
                                                 value={form.type}
@@ -380,6 +386,24 @@ export default function OnboardingPage() {
                                                 <option value="investasi">Investasi</option>
                                                 <option value="cash">Cash</option>
                                             </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-bold mb-2">Nama Aset</label>
+                                            {form.type === 'tabungan' ? (
+                                                <Combobox
+                                                    value={form.name}
+                                                    onChange={(value) => handleAssetFormChange(index, 'name', value)}
+                                                    options={form.country === 'JP' ? banksJp : banksId}
+                                                    placeholder="Pilih bank atau ketik..."
+                                                />
+                                            ) : (
+                                                <Input
+                                                    value={form.name}
+                                                    onChange={(e) => handleAssetFormChange(index, 'name', e.target.value)}
+                                                    placeholder="Contoh: Dompet Utama"
+                                                />
+                                            )}
                                         </div>
 
                                         <div>
@@ -433,44 +457,83 @@ export default function OnboardingPage() {
                         <CardHeader>
                             <CardTitle>Pilih Dompet Utama</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-6">
                             <p className="text-sm text-muted-foreground">
-                                Dompet utama akan digunakan sebagai default untuk transaksi via WhatsApp.
+                                Pilih sumber dana utama untuk setiap mata uang. Ini akan digunakan sebagai default saat mencatat transaksi.
                             </p>
 
-                            <div className="space-y-3">
-                                {assets.map((asset) => (
-                                    <button
-                                        key={asset.id}
-                                        onClick={() => setSelectedPrimaryAsset(asset.id)}
-                                        className={`w-full p-4 border-3 border-border rounded-lg text-left transition-all ${selectedPrimaryAsset === asset.id
-                                            ? 'bg-primary text-primary-foreground shadow-lg'
-                                            : 'bg-card hover:shadow-md'
-                                            }`}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <Wallet className="w-6 h-6" />
-                                                <div>
-                                                    <p className="font-bold">{asset.name}</p>
-                                                    <p className="text-sm opacity-80">
-                                                        {asset.type} • {asset.currency}
-                                                    </p>
+                            {/* JPY Selection */}
+                            {assets.some(a => a.currency === 'JPY') && (
+                                <div className="space-y-3">
+                                    <h3 className="font-bold text-sm text-gray-500 uppercase tracking-wider">Dompet Utama JPY (🇯🇵)</h3>
+                                    {assets.filter(a => a.currency === 'JPY').map((asset) => (
+                                        <button
+                                            key={asset.id}
+                                            onClick={() => setSelectedPrimaryJpy(asset.id)}
+                                            className={`w-full p-4 border-3 border-border rounded-lg text-left transition-all ${selectedPrimaryJpy === asset.id
+                                                ? 'bg-primary text-primary-foreground shadow-lg'
+                                                : 'bg-card hover:shadow-md'
+                                                }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <Wallet className="w-6 h-6" />
+                                                    <div>
+                                                        <p className="font-bold">{asset.name}</p>
+                                                        <p className="text-sm opacity-80">
+                                                            {asset.type} • ¥{asset.balance.toLocaleString()}
+                                                        </p>
+                                                    </div>
                                                 </div>
+                                                {selectedPrimaryJpy === asset.id && (
+                                                    <CheckCircle2 className="w-6 h-6" />
+                                                )}
                                             </div>
-                                            {selectedPrimaryAsset === asset.id && (
-                                                <CheckCircle2 className="w-6 h-6" />
-                                            )}
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* IDR Selection */}
+                            {assets.some(a => a.currency === 'IDR') && (
+                                <div className="space-y-3">
+                                    <h3 className="font-bold text-sm text-gray-500 uppercase tracking-wider">Dompet Utama IDR (🇮🇩)</h3>
+                                    {assets.filter(a => a.currency === 'IDR').map((asset) => (
+                                        <button
+                                            key={asset.id}
+                                            onClick={() => setSelectedPrimaryIdr(asset.id)}
+                                            className={`w-full p-4 border-3 border-border rounded-lg text-left transition-all ${selectedPrimaryIdr === asset.id
+                                                ? 'bg-primary text-primary-foreground shadow-lg'
+                                                : 'bg-card hover:shadow-md'
+                                                }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <Wallet className="w-6 h-6" />
+                                                    <div>
+                                                        <p className="font-bold">{asset.name}</p>
+                                                        <p className="text-sm opacity-80">
+                                                            {asset.type} • Rp {asset.balance.toLocaleString()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {selectedPrimaryIdr === asset.id && (
+                                                    <CheckCircle2 className="w-6 h-6" />
+                                                )}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
 
                             <Button
                                 variant="primary"
-                                className="w-full"
+                                className="w-full mt-4"
                                 onClick={handleComplete}
-                                disabled={!selectedPrimaryAsset}
+                                disabled={
+                                    (assets.some(a => a.currency === 'JPY') && !selectedPrimaryJpy) ||
+                                    (assets.some(a => a.currency === 'IDR') && !selectedPrimaryIdr)
+                                }
                             >
                                 Selesai
                             </Button>

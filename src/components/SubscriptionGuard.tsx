@@ -15,13 +15,16 @@ export const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({ children }
     useEffect(() => {
         if (!isLoading && subscriptionStatus) {
             // Allow access to subscription page itself to prevent loop
-            if (pathname === '/dashboard/subscription') {
+            if (pathname === '/dashboard/subscription' || pathname === '/dashboard/profile') {
                 return;
             }
 
             // If not subscribed, redirect to subscription page
             if (!subscriptionStatus.has_subscription || !subscriptionStatus.current_plan) {
+                console.log('SubscriptionGuard: Redirecting to subscription. Status:', subscriptionStatus);
                 router.push('/dashboard/subscription'); // Assuming the subscription page is inside dashboard layout
+            } else {
+                console.log('SubscriptionGuard: Access granted. Plan:', subscriptionStatus.current_plan);
             }
         }
     }, [isLoading, subscriptionStatus, router, pathname]);
@@ -35,7 +38,7 @@ export const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({ children }
     }
 
     // If unsubscribed but attempting to view subscription page, allow it
-    if ((!subscriptionStatus?.has_subscription || !subscriptionStatus?.current_plan) && pathname !== '/dashboard/subscription') {
+    if ((!subscriptionStatus?.has_subscription || !subscriptionStatus?.current_plan) && pathname !== '/dashboard/subscription' && pathname !== '/dashboard/profile') {
         return null; // Don't render children while redirecting
     }
 

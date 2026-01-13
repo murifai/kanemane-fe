@@ -5,12 +5,15 @@ import { useRouter } from 'next/navigation';
 import Card, { CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { transactionsService } from '@/lib/services/transactions';
-import type { Transaction } from '@/lib/types';
+import type { Transaction, Budget } from '@/lib/types';
 import { Trash2, PlusCircle, BanknoteArrowDown, BanknoteArrowUp, Pencil } from 'lucide-react';
 import { useTransactionModal } from '@/context/TransactionModalContext';
 
 function TransactionsContent() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [budget, setBudget] = useState<Budget | null>(null);
+    const [isEditingBudget, setIsEditingBudget] = useState(false);
+    const [newBudgetAmount, setNewBudgetAmount] = useState('');
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'income' | 'expense'>('income');
     const [currency, setCurrency] = useState<'JPY' | 'IDR'>('JPY');
@@ -19,18 +22,38 @@ function TransactionsContent() {
     // Define loadData first so it can be used in useEffect
     const loadData = useCallback(async () => {
         try {
-            const transactionsData = await transactionsService.getAll(currency);
+            const [transactionsData, budgetData] = await Promise.all([
+                transactionsService.getAll(currency),
+                transactionsService.getBudget(currency)
+            ]);
+
             // Sort transaksi berdasarkan tanggal terbaru
             transactionsData.sort((a, b) => {
                 return new Date(b.date).getTime() - new Date(a.date).getTime();
             });
             setTransactions(transactionsData);
+            setBudget(budgetData);
+            setNewBudgetAmount(budgetData.amount.toString());
         } catch (error) {
             console.error('Gagal memuat data:', error);
         } finally {
             setLoading(false);
         }
     }, [currency]);
+
+    const handleSaveBudget = async () => {
+        try {
+            const amount = parseFloat(newBudgetAmount);
+            if (isNaN(amount)) return;
+            const now = new Date();
+            const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const updatedBudget = await transactionsService.setBudget(currency, amount, month);
+            setBudget({ ...updatedBudget, is_fallback: false }); // Ensure UI updates immediately
+            setIsEditingBudget(false);
+        } catch (error) {
+            console.error('Failed to save budget', error);
+        }
+    };
 
     useEffect(() => {
         loadData();
@@ -156,50 +179,75 @@ function TransactionsContent() {
             <Card>
                 <CardContent className="p-6">
                     {/* Summary Numbers */}
-                    <div className="flex flex-row justify-between items-center gap-2 md:gap-6 mb-4">
-                        <div className="flex flex-col items-center sm:items-start flex-1 text-center sm:text-left">
-                            <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
+                        {/* Income */}
+                        <div className="flex flex-col items-center flex-1 w-full md:w-auto">
+                            <div className="flex items-center gap-2 mb-1">
                                 <div className="p-1.5 bg-[#e6f4ff] rounded-full border-2 border-[#4da6ff]">
                                     <BanknoteArrowDown className="w-4 h-4 text-[#4da6ff]" />
                                 </div>
-                                <span className="text-[#737373] text-xs sm:text-sm font-medium">Total Pemasukan</span>
+                                <span className="text-[#737373] text-sm font-medium">Pemasukan</span>
                             </div>
-                            <span className="text-lg sm:text-2xl font-bold text-[#4da6ff] break-all">
+                            <span className="text-xl md:text-2xl font-bold text-[#4da6ff] break-all">
                                 {formatCurrency(chartTotals.income, currency)}
                             </span>
                         </div>
 
-                        <div className="h-12 w-0.5 bg-gray-200"></div>
+                        {/* Budget */}
+                        <div className="flex flex-col items-center flex-1 w-full md:w-auto p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[#737373] text-sm font-medium">
+                                    Budget Bulan {new Date().toLocaleDateString('id-ID', { month: 'long' })}
+                                </span>
+                                <button onClick={() => setIsEditingBudget(true)} className="text-gray-400 hover:text-black transition-colors">
+                                    <Pencil className="w-3 h-3" />
+                                </button>
+                            </div>
+                            {isEditingBudget ? (
+                                <input
+                                    type="number"
+                                    value={newBudgetAmount}
+                                    onChange={(e) => setNewBudgetAmount(e.target.value)}
+                                    className="w-32 text-center text-xl font-bold border-b-2 border-black bg-transparent focus:outline-none"
+                                    autoFocus
+                                    onBlur={handleSaveBudget}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSaveBudget()}
+                                />
+                            ) : (
+                                <span className="text-xl md:text-2xl font-bold text-black break-all">
+                                    {budget ? formatCurrency(budget.amount, currency) : formatCurrency(0, currency)}
+                                </span>
+                            )}
+                        </div>
 
-                        <div className="flex flex-col items-center sm:items-end flex-1 text-center sm:text-right">
-                            <div className="flex items-center justify-center sm:justify-end gap-2 mb-1">
+                        {/* Expense */}
+                        <div className="flex flex-col items-center flex-1 w-full md:w-auto">
+                            <div className="flex items-center gap-2 mb-1">
                                 <div className="p-1.5 bg-[#ffebe6] rounded-full border-2 border-[#f2727d]">
                                     <BanknoteArrowUp className="w-4 h-4 text-[#f2727d]" />
                                 </div>
-                                <span className="text-[#737373] text-xs sm:text-sm font-medium">Total Pengeluaran</span>
+                                <span className="text-[#737373] text-sm font-medium">Pengeluaran</span>
                             </div>
-                            <span className="text-lg sm:text-2xl font-bold text-[#f2727d] break-all">
+                            <span className="text-xl md:text-2xl font-bold text-[#f2727d] break-all">
                                 {formatCurrency(chartTotals.expense, currency)}
                             </span>
                         </div>
                     </div>
 
-                    {/* Progress Bar */}
-                    <div className="relative pt-4">
+                    {/* Budget vs Expense Bar */}
+                    <div className="relative">
                         <div className="flex justify-between text-xs font-bold mb-2">
-                            <span>{Math.round((chartTotals.expense / (chartTotals.income || 1)) * 100)}% dari Pemasukan</span>
-                            <span>{formatCurrency(chartTotals.income - chartTotals.expense, currency)} Tersisa</span>
+                            <span>{budget && budget.amount > 0 ? Math.round((chartTotals.expense / budget.amount) * 100) : 0}% dari Budget</span>
+                            <span className={((budget?.amount || 0) - chartTotals.expense) < 0 ? "text-red-500" : "text-green-600"}>
+                                {((budget?.amount || 0) - chartTotals.expense) < 0 ? '-' : ''}
+                                {formatCurrency(Math.abs((budget?.amount || 0) - chartTotals.expense), currency)} Tersisa
+                            </span>
                         </div>
-                        <div className="h-10 w-full bg-[#e6f4ff] border-2 border-black overflow-hidden relative">
-                            {/* Income Background (Blue tint) */}
-                            {/* Expense Bar */}
+                        <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden">
                             <div
-                                className="h-full bg-[#f2727d] relative"
-                                style={{ width: `${Math.min((chartTotals.expense / (chartTotals.income || 1)) * 100, 100)}%` }}
-                            >
-                                {/* Diagonal Stripes pattern for flair */}
-                                <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent)', backgroundSize: '1rem 1rem' }}></div>
-                            </div>
+                                className={`h-full transition-all duration-500 ${((budget?.amount || 0) - chartTotals.expense) < 0 ? 'bg-red-500' : 'bg-green-500'}`}
+                                style={{ width: `${budget && budget.amount > 0 ? Math.min((chartTotals.expense / budget.amount) * 100, 100) : 0}%` }}
+                            />
                         </div>
                     </div>
                 </CardContent>

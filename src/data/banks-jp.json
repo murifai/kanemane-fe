@@ -25,9 +25,9 @@
     "keywords": "saitamarisona"
   },
   {
-    "value": "ＰａｙＰａｙ銀行",
-    "label": "ＰａｙＰａｙ銀行",
-    "keywords": "peipei"
+    "value": "PayPay銀行",
+    "label": "Paypay銀行",
+    "keywords": "paypay"
   },
   {
     "value": "セブン銀行",
@@ -132,7 +132,7 @@
   {
     "value": "群馬銀行",
     "label": "群馬銀行",
-    "keywords": "gumma"
+    "keywords": "gunma"
   },
   {
     "value": "足利銀行",
@@ -1177,7 +1177,7 @@
   {
     "value": "北群馬信金銀行",
     "label": "北群馬信金銀行",
-    "keywords": "kitagummashinkin"
+    "keywords": "kitagunmashinkin"
   },
   {
     "value": "しののめ信金銀行",
@@ -2332,17 +2332,17 @@
   {
     "value": "群馬県信組銀行",
     "label": "群馬県信組銀行",
-    "keywords": "gummakenshinkumi"
+    "keywords": "gunmakenshinkumi"
   },
   {
     "value": "ぐんまみらい信組銀行",
     "label": "ぐんまみらい信組銀行",
-    "keywords": "gummamiraishinkumi"
+    "keywords": "gunmamiraishinkumi"
   },
   {
     "value": "群馬県医師信組銀行",
     "label": "群馬県医師信組銀行",
-    "keywords": "gummakenishishinkumi"
+    "keywords": "gunmakenishishinkumi"
   },
   {
     "value": "埼玉県医師信組銀行",

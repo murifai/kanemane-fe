@@ -5,7 +5,7 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { dashboardService } from '@/lib/services/dashboard';
 import type { DashboardSummary, DashboardCharts, Transaction } from '@/lib/types';
-import { TrendingUp, TrendingDown, PlusCircle, ArrowRight, BanknoteArrowDown, BanknoteArrowUp, FileText } from 'lucide-react';
+import { TrendingUp, TrendingDown, PlusCircle, ArrowRight, BanknoteArrowDown, BanknoteArrowUp, FileText, Edit } from 'lucide-react';
 import {
     PieChart,
     Pie,
@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { useRouter } from 'next/navigation';
 import { useTransactionModal } from '@/context/TransactionModalContext';
+import BudgetEditModal from '@/components/dashboard/BudgetEditModal';
 
 export default function DashboardPage() {
     const [summary, setSummary] = useState<DashboardSummary | null>(null);
@@ -23,6 +24,7 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [greeting, setGreeting] = useState('');
     const [currency, setCurrency] = useState<'JPY' | 'IDR'>('JPY');
+    const [showBudgetModal, setShowBudgetModal] = useState(false);
     const router = useRouter();
     const { openModal, setOnTransactionCreated } = useTransactionModal();
 
@@ -112,6 +114,7 @@ export default function DashboardPage() {
     // Progress Bar Data
     const incomeTotal = summary?.monthly_income || 0;
     const expenseTotal = summary?.monthly_expense || 0;
+    const budgetAmount = summary?.budget_amount || 0;
     const expensePercentage = incomeTotal > 0 ? Math.min((expenseTotal / incomeTotal) * 100, 100) : 0;
 
     // User Name Logic: Backend sends 'user_name' in summary now
@@ -181,6 +184,14 @@ export default function DashboardPage() {
                 </div>
                 {/* Desktop: Buttons on the right */}
                 <div className="hidden md:flex gap-2">
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        className="flex items-center gap-2 border-2 border-black shadow-[3px_3px_0px_0px_#000000]"
+                        onClick={() => setShowBudgetModal(true)}
+                    >
+                        <Edit className="w-4 h-4" /> Edit Budget
+                    </Button>
                     <Button variant="secondary" size="sm" className="flex items-center gap-2" onClick={() => router.push('/dashboard/reports')}>
                         <FileText className="w-4 h-4" /> Laporan Keuangan
                     </Button>
@@ -212,165 +223,185 @@ export default function DashboardPage() {
                 </button>
             </div>
 
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-
-                {/* Left Column: Charts (2/3 width) - Reordered: Cashflow (Top) -> Donut */}
-                <div className="lg:col-span-2 space-y-6 md:space-y-8">
-
-                    {/* Arus Kas (Cashflow) - No Title, Moved to Top */}
-                    <Card>
-                        <CardContent className="p-6">
-                            {/* Summary Numbers - Horizontal Layout on ALL screens (like Transactions) */}
-                            <div className="flex flex-row justify-between items-center gap-2 md:gap-6 mb-4">
-                                <div className="flex flex-col items-center sm:items-start flex-1 text-center sm:text-left">
-                                    <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
-                                        <div className="p-1.5 bg-[#e6f4ff] rounded-full border-2 border-[#4da6ff]">
-                                            <BanknoteArrowDown className="w-4 h-4 text-[#4da6ff]" />
-                                        </div>
-                                        <span className="text-[#737373] text-xs sm:text-sm font-medium">Total Pemasukan</span>
-                                    </div>
-                                    <span className="text-lg sm:text-2xl font-bold text-[#4da6ff] break-all">
-                                        {formatCurrency(incomeTotal, currency)}
-                                    </span>
+            {/* Arus Kas - Full Width */}
+            <Card>
+                <CardContent className="p-6">
+                    {/* Summary Numbers */}
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
+                        {/* Income */}
+                        <div className="flex flex-col items-center flex-1 w-full md:w-auto">
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="p-1.5 bg-[#e6f4ff] rounded-full border-2 border-[#4da6ff]">
+                                    <BanknoteArrowDown className="w-4 h-4 text-[#4da6ff]" />
                                 </div>
+                                <span className="text-[#737373] text-sm font-medium">Pemasukan</span>
+                            </div>
+                            <span className="text-xl md:text-2xl font-bold text-[#4da6ff] break-all">
+                                {formatCurrency(incomeTotal, currency)}
+                            </span>
+                        </div>
 
-                                <div className="h-12 w-0.5 bg-gray-200"></div>
+                        {/* Budget */}
+                        <div className="flex flex-col items-center flex-1 w-full md:w-auto p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[#737373] text-sm font-medium">
+                                    Budget Bulan Ini
+                                </span>
+                            </div>
+                            <span className="text-xl md:text-2xl font-bold text-black break-all">
+                                {formatCurrency(budgetAmount, currency)}
+                            </span>
+                        </div>
 
-                                <div className="flex flex-col items-center sm:items-end flex-1 text-center sm:text-right">
-                                    <div className="flex items-center justify-center sm:justify-end gap-2 mb-1">
-                                        <div className="p-1.5 bg-[#ffebe6] rounded-full border-2 border-[#f2727d]">
-                                            <BanknoteArrowUp className="w-4 h-4 text-[#f2727d]" />
-                                        </div>
-                                        <span className="text-[#737373] text-xs sm:text-sm font-medium">Total Pengeluaran</span>
+                        {/* Expense */}
+                        <div className="flex flex-col items-center flex-1 w-full md:w-auto">
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="p-1.5 bg-[#ffebe6] rounded-full border-2 border-[#f2727d]">
+                                    <BanknoteArrowUp className="w-4 h-4 text-[#f2727d]" />
+                                </div>
+                                <span className="text-[#737373] text-sm font-medium">Pengeluaran</span>
+                            </div>
+                            <span className="text-xl md:text-2xl font-bold text-[#f2727d] break-all">
+                                {formatCurrency(expenseTotal, currency)}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Budget vs Expense Bar */}
+                    <div className="relative pt-4">
+                        <div className="flex justify-between text-xs font-bold mb-2">
+                            <span>{budgetAmount > 0 ? Math.round((expenseTotal / budgetAmount) * 100) : 0}% dari Budget</span>
+                            <span className={(budgetAmount - expenseTotal) < 0 ? "text-red-500" : "text-green-600"}>
+                                {(budgetAmount - expenseTotal) < 0 ? '-' : ''}
+                                {formatCurrency(Math.abs(budgetAmount - expenseTotal), currency)} Tersisa
+                            </span>
+                        </div>
+                        <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                                className={`h-full transition-all duration-500 ${(budgetAmount - expenseTotal) < 0 ? 'bg-red-500' : 'bg-green-500'}`}
+                                style={{ width: `${budgetAmount > 0 ? Math.min((expenseTotal / budgetAmount) * 100, 100) : 0}%` }}
+                            />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Main Content Grid - Donut and History Side by Side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+
+                {/* Expense Categories Donut - Renamed to "Pengeluaran" */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg md:text-xl">Pengeluaran</CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-[300px] flex items-center justify-center relative">
+                        {charts?.category_breakdown && charts.category_breakdown.length > 0 ? (
+                            <div className="w-full h-full relative">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={charts.category_breakdown as any[]}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={60}
+                                            outerRadius={100}
+                                            paddingAngle={0}
+                                            dataKey="amount"
+                                            nameKey="category"
+                                            stroke="black"
+                                            strokeWidth={2}
+                                            isAnimationActive={false}
+                                        >
+                                            {charts.category_breakdown.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip
+                                            content={<CustomTooltip />}
+                                            cursor={{ fill: 'none' }}
+                                            allowEscapeViewBox={{ x: true, y: true }}
+                                        />
+                                        <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-8">
+                                    <div className="text-center">
+                                        <p className="text-2xl font-bold">{currency === 'JPY' ? '¥' : 'Rp'}{formatCompactNumber(expenseTotal)}</p>
                                     </div>
-                                    <span className="text-lg sm:text-2xl font-bold text-[#f2727d] break-all">
-                                        {formatCurrency(expenseTotal, currency)}
-                                    </span>
                                 </div>
                             </div>
+                        ) : (
+                            <p className="text-gray-500">Belum ada data pengeluaran</p>
+                        )}
+                    </CardContent>
+                </Card>
 
-                            {/* Progress Bar */}
-                            <div className="relative pt-4">
-                                <div className="h-10 w-full bg-[#e6f4ff] border-2 border-black overflow-hidden relative">
-                                    {/* Income Background (Blue tint) */}
-                                    {/* Expense Bar */}
-                                    <div
-                                        className="h-full bg-[#f2727d] relative"
-                                        style={{ width: `${expensePercentage}%` }}
-                                    >
-                                        {/* Diagonal Stripes pattern for flair */}
-                                        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent)', backgroundSize: '1rem 1rem' }}></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                {/* Right Column: History - Now equal width with donut */}
+                {/* Recent History */}
+                <Card className="lg:h-full flex flex-col">
+                    <CardHeader className="flex flex-row items-center justify-between shrink-0">
+                        <CardTitle className="text-lg md:text-xl">Riwayat</CardTitle>
+                        <Button size="sm" variant="secondary" className="text-sm flex items-center gap-1" onClick={() => router.push('/dashboard/transactions')}>
+                            Lihat Semua <ArrowRight className="w-4 h-4" />
+                        </Button>
+                    </CardHeader>
+                    <CardContent className="lg:flex-1 lg:overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="space-y-4">
+                            {summary?.recent_transactions?.map((tx, index) => {
+                                const isIncomeType = isIncome(tx);
+                                // Use a composite key to prevent duplicates if IDs overlap between income/expense tables
+                                const uniqueKey = `${tx.type}-${tx.id}-${index}`;
 
-                    {/* Expense Categories Donut - Renamed to "Pengeluaran" */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg md:text-xl">Pengeluaran</CardTitle>
-                        </CardHeader>
-                        <CardContent className="h-[300px] flex items-center justify-center relative">
-                            {charts?.category_breakdown && charts.category_breakdown.length > 0 ? (
-                                <div className="w-full h-full relative">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={charts.category_breakdown as any[]}
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={60}
-                                                outerRadius={100}
-                                                paddingAngle={0}
-                                                dataKey="amount"
-                                                nameKey="category"
-                                                stroke="black"
-                                                strokeWidth={2}
-                                                isAnimationActive={false}
-                                            >
-                                                {charts.category_breakdown.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip
-                                                content={<CustomTooltip />}
-                                                cursor={{ fill: 'none' }}
-                                                allowEscapeViewBox={{ x: true, y: true }}
-                                            />
-                                            <Legend verticalAlign="bottom" height={36} iconType="circle" />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-8">
-                                        <div className="text-center">
-                                            <p className="text-2xl font-bold">{currency === 'JPY' ? '¥' : 'Rp'}{formatCompactNumber(expenseTotal)}</p>
+                                return (
+                                    <div key={uniqueKey} className="group relative flex items-center justify-between border-b border-gray-200 last:border-0 pb-3 last:pb-0 pt-3 first:pt-0">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-10 h-10 flex items-center justify-center border-[3px] border-black ${isIncomeType ? 'bg-[#4da6ff]' : 'bg-[#f2727d]'}`}>
+                                                {isIncomeType ?
+                                                    <BanknoteArrowDown className="w-5 h-5 text-white" /> :
+                                                    <BanknoteArrowUp className="w-5 h-5 text-white" />
+                                                }
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold">{tx.category}</p>
+                                                <p className="text-xs text-gray-500">{new Date(tx.date).toLocaleDateString('id-ID')}</p>
+                                            </div>
+                                        </div>
+                                        <div className={`font-bold text-sm ${isIncomeType ? 'text-[#4da6ff]' : 'text-[#f2727d]'}`}>
+                                            {isIncomeType ? '+' : '-'}
+                                            {formatCurrency(Number(tx.amount), tx.currency)}
+                                        </div>
+
+                                        {/* Hover Detail Tooltip */}
+                                        <div className="absolute left-0 top-full mt-1 w-full bg-black text-white p-3 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 shadow-lg pointer-events-none">
+                                            <div className="flex justify-between items-start mb-1">
+                                                <span className="font-bold text-xs">{tx.category}</span>
+                                                <span className="text-xs text-gray-300">{new Date(tx.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                            </div>
+                                            <p className="text-sm">{tx.note || 'Tidak ada catatan'}</p>
                                         </div>
                                     </div>
-                                </div>
-                            ) : (
-                                <p className="text-gray-500">Belum ada data pengeluaran</p>
+                                );
+                            })}
+                            {(!summary?.recent_transactions || summary.recent_transactions.length === 0) && (
+                                <p className="text-gray-500 text-sm text-center py-4">Belum ada transaksi</p>
                             )}
-                        </CardContent>
-                    </Card>
-                </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                {/* Right Column: History (1/3 width) - Removed Targets */}
-                <div className="lg:h-full">
-                    {/* Recent History */}
-                    <Card className="lg:h-full flex flex-col">
-                        <CardHeader className="flex flex-row items-center justify-between shrink-0">
-                            <CardTitle className="text-lg md:text-xl">Riwayat</CardTitle>
-                            <Button size="sm" variant="secondary" className="text-sm flex items-center gap-1" onClick={() => router.push('/dashboard/transactions')}>
-                                Lihat Semua <ArrowRight className="w-4 h-4" />
-                            </Button>
-                        </CardHeader>
-                        <CardContent className="lg:flex-1 lg:overflow-y-auto pr-2 custom-scrollbar">
-                            <div className="space-y-4">
-                                {summary?.recent_transactions?.map((tx, index) => {
-                                    const isIncomeType = isIncome(tx);
-                                    // Use a composite key to prevent duplicates if IDs overlap between income/expense tables
-                                    const uniqueKey = `${tx.type}-${tx.id}-${index}`;
-
-                                    return (
-                                        <div key={uniqueKey} className="group relative flex items-center justify-between border-b border-gray-200 last:border-0 pb-3 last:pb-0 pt-3 first:pt-0">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-10 h-10 flex items-center justify-center border-[3px] border-black ${isIncomeType ? 'bg-[#4da6ff]' : 'bg-[#f2727d]'}`}>
-                                                    {isIncomeType ?
-                                                        <BanknoteArrowDown className="w-5 h-5 text-white" /> :
-                                                        <BanknoteArrowUp className="w-5 h-5 text-white" />
-                                                    }
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-bold">{tx.category}</p>
-                                                    <p className="text-xs text-gray-500">{new Date(tx.date).toLocaleDateString('id-ID')}</p>
-                                                </div>
-                                            </div>
-                                            <div className={`font-bold text-sm ${isIncomeType ? 'text-[#4da6ff]' : 'text-[#f2727d]'}`}>
-                                                {isIncomeType ? '+' : '-'}
-                                                {formatCurrency(Number(tx.amount), tx.currency)}
-                                            </div>
-
-                                            {/* Hover Detail Tooltip */}
-                                            <div className="absolute left-0 top-full mt-1 w-full bg-black text-white p-3 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 shadow-lg pointer-events-none">
-                                                <div className="flex justify-between items-start mb-1">
-                                                    <span className="font-bold text-xs">{tx.category}</span>
-                                                    <span className="text-xs text-gray-300">{new Date(tx.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                                                </div>
-                                                <p className="text-sm">{tx.note || 'Tidak ada catatan'}</p>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                                {(!summary?.recent_transactions || summary.recent_transactions.length === 0) && (
-                                    <p className="text-gray-500 text-sm text-center py-4">Belum ada transaksi</p>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                </div>
             </div>
+
+            {/* Budget Edit Modal */}
+            <BudgetEditModal
+                isOpen={showBudgetModal}
+                onClose={() => setShowBudgetModal(false)}
+                currentBudget={budgetAmount}
+                currency={currency}
+                onSave={async (amount) => {
+                    await dashboardService.updateBudget(currency, amount);
+                    await loadDashboardData();
+                }}
+            />
         </div>
     );
 }
