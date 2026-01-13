@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import Input, { Select } from '@/components/ui/Input';
 import { reportsService } from '@/lib/services/reports';
 import { FileText, Download, Calendar } from 'lucide-react';
+import { FeatureGuard } from '@/components/FeatureGuard';
 
 export default function ReportsPage() {
     const [loading, setLoading] = useState(false);
@@ -56,59 +57,61 @@ export default function ReportsPage() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="space-y-4">
-                        {/* Date Range */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Input
-                                label="Dari"
-                                type="date"
-                                value={formData.start_date}
-                                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                    <FeatureGuard feature="export">
+                        <div className="space-y-4">
+                            {/* Date Range */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <Input
+                                    label="Dari"
+                                    type="date"
+                                    value={formData.start_date}
+                                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                                    required
+                                />
+                                <Input
+                                    label="Sampai"
+                                    type="date"
+                                    value={formData.end_date}
+                                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                                    required
+                                />
+                            </div>
+
+                            {/* Currency Filter */}
+                            <Select
+                                label="Aset"
+                                value={formData.currency}
+                                onChange={(e) => setFormData({ ...formData, currency: e.target.value as any })}
+                                options={[
+                                    { value: 'JPY', label: 'JPY (Yen Jepang)' },
+                                    { value: 'IDR', label: 'IDR (Rupiah)' },
+                                ]}
                                 required
                             />
-                            <Input
-                                label="Sampai"
-                                type="date"
-                                value={formData.end_date}
-                                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                                required
+
+                            {/* Format Selection */}
+                            <Select
+                                label="Format File"
+                                value={formData.format}
+                                onChange={(e) => setFormData({ ...formData, format: e.target.value as any })}
+                                options={[
+                                    { value: 'xlsx', label: 'Excel (.xlsx)' },
+                                    { value: 'csv', label: 'CSV (.csv)' },
+                                ]}
                             />
+
+                            {/* Export Button */}
+                            <Button
+                                variant="primary"
+                                onClick={handleExport}
+                                disabled={loading || !formData.start_date || !formData.end_date}
+                                className="w-full flex items-center justify-center gap-2"
+                            >
+                                <Download className="w-4 h-4" />
+                                {loading ? 'Membuat...' : 'Buat Laporan'}
+                            </Button>
                         </div>
-
-                        {/* Currency Filter */}
-                        <Select
-                            label="Aset"
-                            value={formData.currency}
-                            onChange={(e) => setFormData({ ...formData, currency: e.target.value as any })}
-                            options={[
-                                { value: 'JPY', label: 'JPY (Yen Jepang)' },
-                                { value: 'IDR', label: 'IDR (Rupiah)' },
-                            ]}
-                            required
-                        />
-
-                        {/* Format Selection */}
-                        <Select
-                            label="Format File"
-                            value={formData.format}
-                            onChange={(e) => setFormData({ ...formData, format: e.target.value as any })}
-                            options={[
-                                { value: 'xlsx', label: 'Excel (.xlsx)' },
-                                { value: 'csv', label: 'CSV (.csv)' },
-                            ]}
-                        />
-
-                        {/* Export Button */}
-                        <Button
-                            variant="primary"
-                            onClick={handleExport}
-                            disabled={loading || !formData.start_date || !formData.end_date}
-                            className="w-full flex items-center justify-center gap-2"
-                        >
-                            <Download className="w-4 h-4" />
-                            {loading ? 'Membuat...' : 'Buat Laporan'}
-                        </Button>
-                    </div>
+                    </FeatureGuard>
                 </CardContent>
             </Card>
         </div>

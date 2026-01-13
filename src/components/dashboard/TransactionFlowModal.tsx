@@ -10,6 +10,7 @@ import type { Asset, CreateIncomeData, CreateExpenseData, ReceiptScanResult } fr
 import { BanknoteArrowDown, BanknoteArrowUp, ScanLine } from 'lucide-react';
 import { useTransactionModal } from '@/context/TransactionModalContext';
 import ReceiptScanner from './ReceiptScanner';
+import { FeatureGuard } from '@/components/FeatureGuard';
 
 export default function TransactionFlowModal() {
     const { isOpen, closeModal, onTransactionCreated, transactionToEdit } = useTransactionModal();
@@ -344,16 +345,18 @@ export default function TransactionFlowModal() {
                     <form onSubmit={handleExpenseSubmit}>
                         <CurrencyTabs />
                         {/* Scan Receipt Button */}
-                        <div className="mb-4">
-                            <button
-                                type="button"
-                                onClick={() => setShowReceiptScanner(true)}
-                                className="w-full flex items-center justify-center gap-2 p-3 bg-[#73cfd9] text-black rounded-lg hover:bg-[#5fb9c4] transition-colors border-2 border-black shadow-[3px_3px_0px_0px_#000000] font-bold"
-                            >
-                                <ScanLine className="w-5 h-5" />
-                                <span>Scan Resi</span>
-                            </button>
-                        </div>
+                        <FeatureGuard feature="scan" showUpgradePrompt={false} fallback={null}>
+                            <div className="mb-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowReceiptScanner(true)}
+                                    className="w-full flex items-center justify-center gap-2 p-3 bg-[#73cfd9] text-black rounded-lg hover:bg-[#5fb9c4] transition-colors border-2 border-black shadow-[3px_3px_0px_0px_#000000] font-bold"
+                                >
+                                    <ScanLine className="w-5 h-5" />
+                                    <span>Scan Resi</span>
+                                </button>
+                            </div>
+                        </FeatureGuard>
 
                         <Select
                             label="Aset"

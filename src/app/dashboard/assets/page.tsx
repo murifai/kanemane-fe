@@ -1,6 +1,5 @@
 'use client';
 
-// ... (imports)
 import React, { useEffect, useState } from 'react';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -17,7 +16,6 @@ import banksId from '@/data/banks-id.json';
 import ewallets from '@/data/ewallets.json';
 
 export default function AssetsPage() {
-    // ... (keep existing state)
     const [assets, setAssets] = useState<{ personal: Asset[]; family: Asset[] } | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'JPY' | 'IDR'>('JPY');
@@ -26,29 +24,8 @@ export default function AssetsPage() {
     const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
     const [exchangeRate, setExchangeRate] = useState(107);
     const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
-    const calculateAllAssets = () => {
-        if (!assets) return [];
-        return [...assets.personal, ...assets.family];
-    };
-
-    const calculateGrandTotal = (targetCurrency: 'JPY' | 'IDR') => {
-        const all = calculateAllAssets();
-        let total = 0;
-        all.forEach(asset => {
-            const amount = Number(asset.balance);
-            if (asset.currency === targetCurrency) {
-                total += amount;
-            } else {
-                if (targetCurrency === 'IDR') {
-                    total += amount * exchangeRate;
-                } else {
-                    total += amount / exchangeRate;
-                }
-            }
-        });
-        return total;
-    };
     const [formData, setFormData] = useState<CreateAssetData>({
         name: '',
         type: 'tabungan',
@@ -78,9 +55,33 @@ export default function AssetsPage() {
         }
     };
 
+    const calculateAllAssets = () => {
+        if (!assets) return [];
+        return [...assets.personal, ...assets.family];
+    };
+
+    const calculateGrandTotal = (targetCurrency: 'JPY' | 'IDR') => {
+        const all = calculateAllAssets();
+        let total = 0;
+        all.forEach(asset => {
+            const amount = Number(asset.balance);
+            if (asset.currency === targetCurrency) {
+                total += amount;
+            } else {
+                if (targetCurrency === 'IDR') {
+                    total += amount * exchangeRate;
+                } else {
+                    total += amount / exchangeRate;
+                }
+            }
+        });
+        return total;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            setError(null);
             if (editingAsset) {
                 await assetsService.update(editingAsset.id, formData);
             } else {
@@ -89,8 +90,13 @@ export default function AssetsPage() {
             setIsModalOpen(false);
             resetForm();
             loadAssets();
-        } catch (error) {
-            console.error('Gagal menyimpan aset:', error);
+        } catch (err: any) {
+            console.error('Gagal menyimpan aset:', err);
+            if (err.response?.data?.code === 'ASSET_LIMIT_REACHED') {
+                setError(err.response.data.message);
+            } else {
+                setError('Gagal menyimpan aset. Silakan coba lagi.');
+            }
         }
     };
 
@@ -123,6 +129,7 @@ export default function AssetsPage() {
             currency: asset.currency,
             balance: asset.balance,
         });
+        setError(null);
         setIsModalOpen(true);
     };
 
@@ -135,6 +142,7 @@ export default function AssetsPage() {
             currency: 'JPY',
             balance: 0,
         });
+        setError(null);
     };
 
     const formatCurrency = (amount: number, currency: string) => {
@@ -382,64 +390,76 @@ export default function AssetsPage() {
                     </>
                 }
             >
-                <form onSubmit={handleSubmit}>
-                    <Select
-                        label="Jenis"
-                        value={formData.type}
-                        onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                        options={[
-                            { value: 'tabungan', label: 'Tabungan' },
-                            { value: 'e-money', label: 'E-Money' },
-                            { value: 'investasi', label: 'Investasi' },
-                            { value: 'cash', label: 'Cash' },
-                        ]}
-                    />
-
-                    <Select
-                        label="Negara"
-                        value={formData.country}
-                        onChange={(e) => {
-                            const country = e.target.value as 'JP' | 'ID';
-                            setFormData({
-                                ...formData,
-                                country,
-                                currency: country === 'JP' ? 'JPY' : 'IDR'
-                            });
-                        }}
-                        options={[
-                            { value: 'JP', label: 'Jepang' },
-                            { value: 'ID', label: 'Indonesia' },
-                        ]}
-                        required
-                    />
-
-                    {showCombobox ? (
-                        <Combobox
-                            label="Nama Aset"
-                            value={formData.name}
-                            onChange={(value) => setFormData({ ...formData, name: value })}
-                            options={getNameOptions()}
-                            placeholder="Pilih atau ketik nama aset..."
-                            required
-                        />
-                    ) : (
-                        <Input
-                            label="Nama Aset"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            required
-                        />
+                <div>
+                    {error && (
+                        <div className="mb-4 p-3 bg-red-100 border-2 border-red-500 rounded text-red-700 text-sm font-bold flex flex-col gap-2">
+                            <p>{error}</p>
+                            {error.includes('Upgrade') && (
+                                <a href="/dashboard/subscription" className="underline text-red-800">
+                                    Klik di sini untuk upgrade ke Pro
+                                </a>
+                            )}
+                        </div>
                     )}
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                        <Select
+                            label="Jenis"
+                            value={formData.type}
+                            onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                            options={[
+                                { value: 'tabungan', label: 'Tabungan' },
+                                { value: 'e-money', label: 'E-Money' },
+                                { value: 'investasi', label: 'Investasi' },
+                                { value: 'cash', label: 'Cash' },
+                            ]}
+                        />
 
-                    <Input
-                        label="Saldo"
-                        type="number"
-                        step="0.01"
-                        value={formData.balance || 0}
-                        onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) || 0 })}
-                        required
-                    />
-                </form>
+                        <Select
+                            label="Negara"
+                            value={formData.country}
+                            onChange={(e) => {
+                                const country = e.target.value as 'JP' | 'ID';
+                                setFormData({
+                                    ...formData,
+                                    country,
+                                    currency: country === 'JP' ? 'JPY' : 'IDR'
+                                });
+                            }}
+                            options={[
+                                { value: 'JP', label: 'Jepang' },
+                                { value: 'ID', label: 'Indonesia' },
+                            ]}
+                            required
+                        />
+
+                        {showCombobox ? (
+                            <Combobox
+                                label="Nama Aset"
+                                value={formData.name}
+                                onChange={(value) => setFormData({ ...formData, name: value })}
+                                options={getNameOptions()}
+                                placeholder="Pilih atau ketik nama aset..."
+                                required
+                            />
+                        ) : (
+                            <Input
+                                label="Nama Aset"
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                required
+                            />
+                        )}
+
+                        <Input
+                            label="Saldo"
+                            type="number"
+                            step="0.01"
+                            value={formData.balance || 0}
+                            onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) || 0 })}
+                            required
+                        />
+                    </form>
+                </div>
             </Modal>
         </div>
     );

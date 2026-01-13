@@ -19,17 +19,19 @@ export default function Pricing({ onLogin, loading }: PricingProps) {
                 <Card className="flex flex-col border-2 border-black shadow-[4px_4px_0px_0px_#000000]">
                     <CardHeader>
                         <CardTitle className="text-2xl font-bold">Basic</CardTitle>
-                        <p className="text-sm text-gray-600">Cocok untuk pemula</p>
+                        <p className="text-sm text-gray-600">Akses Penuh Aplikasi</p>
                     </CardHeader>
                     <CardContent className="flex flex-col flex-grow">
                         <div className="mb-6">
-                            <span className="text-4xl font-bold">Gratis</span>
+                            <span className="text-4xl font-bold">Rp 19.000</span>
+                            <span className="text-xl text-gray-600">/bulan</span>
                         </div>
                         <ul className="space-y-4 mb-8">
                             {[
-                                'Catat transaksi',
-                                'Lihat laporan sederhana',
-                                'Input manual'
+                                'Akses Web Dashboard',
+                                'Input Transaksi Manual',
+                                'Visualisasi Grafik',
+                                '2 Aset per Mata Uang'
                             ].map((item, i) => (
                                 <li key={i} className="flex items-center gap-3">
                                     <div className="w-6 h-6 bg-[#ff5e75] border-2 border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_#000000]">
@@ -44,7 +46,7 @@ export default function Pricing({ onLogin, loading }: PricingProps) {
                             onClick={onLogin}
                             disabled={loading}
                         >
-                            Mulai Gratis
+                            Pilih Basic
                         </Button>
                     </CardContent>
                 </Card>
@@ -53,19 +55,20 @@ export default function Pricing({ onLogin, loading }: PricingProps) {
                 <Card className="flex flex-col border-2 border-black shadow-[4px_4px_0px_0px_#000000] bg-[#f2eda0]">
                     <CardHeader>
                         <CardTitle className="text-2xl font-bold">Pro</CardTitle>
-                        <p className="text-sm text-gray-600">Untuk bisnis yang berkembang</p>
+                        <p className="text-sm text-gray-600">Power User & Automasi</p>
                     </CardHeader>
                     <CardContent className="flex flex-col flex-grow">
                         <div className="mb-6">
-                            <span className="text-4xl font-bold">Rp 50.000</span>
+                            <span className="text-4xl font-bold">Rp 49.000</span>
                             <span className="text-xl text-gray-600">/bulan</span>
                         </div>
                         <ul className="space-y-4 mb-8">
                             {[
-                                'Semua fitur basic',
-                                'Foto Resi',
-                                'Integrasi dengan WhatsApp',
-                                'Export laporan CSV'
+                                'Semua Fitur Basic',
+                                'Integrasi WhatsApp Bot',
+                                'Scan Foto Resi',
+                                'Laporan Keuangan Excel/CSV',
+                                'Unlimited Aset'
                             ].map((item, i) => (
                                 <li key={i} className="flex items-center gap-3">
                                     <div className="w-6 h-6 bg-[#ff5e75] border-2 border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_#000000]">

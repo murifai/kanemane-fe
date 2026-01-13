@@ -166,3 +166,37 @@ export interface OnboardingUser {
     email: string;
     phone: string;
 }
+
+// Subscription types
+export type SubscriptionTier = 'basic' | 'pro';
+
+export interface Subscription {
+    id: number;
+    plan: 'basic' | 'pro';
+    status: 'active' | 'expired' | 'cancelled' | 'pending';
+    started_at: string;
+    expires_at: string;
+    amount: number;
+    is_active?: boolean;
+    is_expired?: boolean;
+}
+
+export interface SubscriptionStatus {
+    has_subscription: boolean;
+    current_plan: SubscriptionTier | null;
+    subscription: Subscription | null;
+}
+
+export interface SubscriptionPlan {
+    id: 'basic' | 'pro';
+    name: string;
+    price: number;
+    features: string[];
+}
+
+export interface FeatureAccess {
+    export: boolean;
+    scan: boolean;
+    whatsapp: boolean;
+}
+
